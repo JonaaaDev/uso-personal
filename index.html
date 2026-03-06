@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raylib Functions - Comentarios en Español</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .comment {
+            color: #6a9955;
+        }
+        .keyword {
+            color: #569cd6;
+        }
+    </style>
+</head>
+<body>
+
+<pre>
+    <span class="comment">// Funciones relacionadas con la ventana</span>
+    void InitWindow(int width, int height, const char *title);  <span class="comment">// Inicializa la ventana y el contexto de OpenGL</span>
+    void CloseWindow(void);                                     <span class="comment">// Cierra la ventana y descarga el contexto de OpenGL</span>
+    bool WindowShouldClose(void);                               <span class="comment">// Comprueba si la aplicación debe cerrarse (tecla ESC presionada o clic en el icono de cerrar)</span>
+    bool IsWindowReady(void);                                   <span class="comment">// Comprueba si la ventana se ha inicializado correctamente</span>
+    bool IsWindowFullscreen(void);                              <span class="comment">// Comprueba si la ventana está actualmente en pantalla completa</span>
+    bool IsWindowHidden(void);                                  <span class="comment">// Comprueba si la ventana está oculta</span>
+    bool IsWindowMinimized(void);                               <span class="comment">// Comprueba si la ventana está minimizada</span>
+    bool IsWindowMaximized(void);                               <span class="comment">// Comprueba si la ventana está maximizada</span>
+    bool IsWindowFocused(void);                                 <span class="comment">// Comprueba si la ventana tiene el foco</span>
+    bool IsWindowResized(void);                                 <span class="comment">// Comprueba si la ventana ha sido redimensionada en el último frame</span>
+    bool IsWindowState(unsigned int flag);                      <span class="comment">// Comprueba si un flag específico de la ventana está activado</span>
+    void SetWindowState(unsigned int flags);                    <span class="comment">// Establece el estado de configuración de la ventana usando flags</span>
+    void ClearWindowState(unsigned int flags);                  <span class="comment">// Limpia los flags de estado de configuración de la ventana</span>
+    void ToggleFullscreen(void);                                <span class="comment">// Alterna el estado de la ventana: pantalla completa/ventana, redimensiona el monitor</span>
+    void ToggleBorderlessWindowed(void);                        <span class="comment">// Alterna el estado de la ventana: ventana sin bordes</span>
+    void MaximizeWindow(void);                                  <span class="comment">// Maximiza la ventana, si es redimensionable</span>
+    void MinimizeWindow(void);                                  <span class="comment">// Minimiza la ventana, si es redimensionable</span>
+    void RestoreWindow(void);                                   <span class="comment">// Restaura la ventana (ni minimizada ni maximizada)</span>
+    void SetWindowIcon(Image image);                            <span class="comment">// Establece el icono de la ventana (imagen única, RGBA 32bit)</span>
+    void SetWindowIcons(Image *images, int count);              <span class="comment">// Establece los iconos de la ventana (múltiples imágenes, RGBA 32bit)</span>
+    void SetWindowTitle(const char *title);                     <span class="comment">// Establece el título de la ventana</span>
+    void SetWindowPosition(int x, int y);                       <span class="comment">// Establece la posición de la ventana en pantalla</span>
+    void SetWindowMonitor(int monitor);                         <span class="comment">// Establece el monitor para la ventana actual</span>
+    void SetWindowMinSize(int width, int height);               <span class="comment">// Establece el tamaño mínimo de la ventana (para FLAG_WINDOW_RESIZABLE)</span>
+    void SetWindowMaxSize(int width, int height);               <span class="comment">// Establece el tamaño máximo de la ventana (para FLAG_WINDOW_RESIZABLE)</span>
+    void SetWindowSize(int width, int height);                  <span class="comment">// Establece las dimensiones de la ventana</span>
+    void SetWindowOpacity(float opacity);                       <span class="comment">// Establece la opacidad de la ventana [0.0f..1.0f]</span>
+    void SetWindowFocused(void);                                <span class="comment">// Enfoca la ventana</span>
+    void *GetWindowHandle(void);                                <span class="comment">// Obtiene el manejador nativo de la ventana</span>
+    int GetScreenWidth(void);                                   <span class="comment">// Obtiene el ancho actual de la pantalla</span>
+    int GetScreenHeight(void);                                  <span class="comment">// Obtiene el alto actual de la pantalla</span>
+    int GetRenderWidth(void);                                   <span class="comment">// Obtiene el ancho de renderizado actual (considera HiDPI)</span>
+    int GetRenderHeight(void);                                  <span class="comment">// Obtiene el alto de renderizado actual (considera HiDPI)</span>
+    int GetMonitorCount(void);                                  <span class="comment">// Obtiene el número de monitores conectados</span>
+    int GetCurrentMonitor(void);                                <span class="comment">// Obtiene el monitor actual donde se encuentra la ventana</span>
+    Vector2 GetMonitorPosition(int monitor);                    <span class="comment">// Obtiene la posición del monitor especificado</span>
+    int GetMonitorWidth(int monitor);                           <span class="comment">// Obtiene el ancho del monitor especificado</span>
+    int GetMonitorHeight(int monitor);                          <span class="comment">// Obtiene el alto del monitor especificado</span>
+    int GetMonitorPhysicalWidth(int monitor);                   <span class="comment">// Obtiene el ancho físico del monitor en milímetros</span>
+    int GetMonitorPhysicalHeight(int monitor);                  <span class="comment">// Obtiene el alto físico del monitor en milímetros</span>
+    int GetMonitorRefreshRate(int monitor);                     <span class="comment">// Obtiene la tasa de refresco del monitor especificado</span>
+    Vector2 GetWindowPosition(void);                            <span class="comment">// Obtiene la posición XY de la ventana en el monitor</span>
+    Vector2 GetWindowScaleDPI(void);                            <span class="comment">// Obtiene el factor de escala DPI de la ventana</span>
+    const char *GetMonitorName(int monitor);                    <span class="comment">// Obtiene el nombre legible por humanos del monitor especificado</span>
+    void SetClipboardText(const char *text);                    <span class="comment">// Establece el contenido de texto del portapapeles</span>
+    const char *GetClipboardText(void);                         <span class="comment">// Obtiene el contenido de texto del portapapeles</span>
+    Image GetClipboardImage(void);                              <span class="comment">// Obtiene la imagen del portapapeles</span>
+    void EnableEventWaiting(void);                              <span class="comment">// Habilita la espera de eventos en EndDrawing(), sin sondeo automático</span>
+    void DisableEventWaiting(void);                             <span class="comment">// Deshabilita la espera de eventos en EndDrawing(), sondeo automático activo</span>
+
+    <span class="comment">// Funciones relacionadas con el cursor</span>
+    void ShowCursor(void);                                      <span class="comment">// Muestra el cursor</span>
+    void HideCursor(void);                                      <span class="comment">// Oculta el cursor</span>
+    bool IsCursorHidden(void);                                  <span class="comment">// Comprueba si el cursor no es visible</span>
+    void EnableCursor(void);                                    <span class="comment">// Habilita el cursor (lo desbloquea)</span>
+    void DisableCursor(void);                                   <span class="comment">// Deshabilita el cursor (lo bloquea)</span>
+    bool IsCursorOnScreen(void);                                <span class="comment">// Comprueba si el cursor está en la pantalla</span>
+
+    <span class="comment">// Funciones relacionadas con el dibujo (Drawing)</span>
+    void ClearBackground(Color color);                          <span class="comment">// Establece el color de fondo (limpia el framebuffer)</span>
+    void BeginDrawing(void);                                    <span class="comment">// Prepara el canvas (framebuffer) para empezar a dibujar</span>
+    void EndDrawing(void);                                      <span class="comment">// Finaliza el dibujo y asume el intercambio de buffers (doble buffer)</span>
+    void BeginMode2D(Camera2D camera);                          <span class="comment">// Inicia el modo 2D con una cámara personalizada</span>
+    void EndMode2D(void);                                       <span class="comment">// Finaliza el modo 2D</span>
+    void BeginMode3D(Camera3D camera);                          <span class="comment">// Inicia el modo 3D con una cámara personalizada</span>
+    void EndMode3D(void);                                       <span class="comment">// Finaliza el modo 3D y vuelve al modo ortográfico 2D por defecto</span>
+    void BeginTextureMode(RenderTexture2D target);              <span class="comment">// Empieza a dibujar en una textura de renderizado</span>
+    void EndTextureMode(void);                                  <span class="comment">// Finaliza el dibujo en la textura de renderizado</span>
+    void BeginShaderMode(Shader shader);                        <span class="comment">// Inicia el dibujo con un shader personalizado</span>
+    void EndShaderMode(void);                                   <span class="comment">// Finaliza el dibujo con shader (vuelve al shader por defecto)</span>
+    void BeginBlendMode(int mode);                              <span class="comment">// Inicia el modo de mezcla (alpha, aditivo, multiplicado, etc.)</span>
+    void EndBlendMode(void);                                    <span class="comment">// Finaliza el modo de mezcla (vuelve al valor por defecto: alpha)</span>
+    void BeginScissorMode(int x, int y, int width, int height); <span class="comment">// Inicia el modo tijera (define un área de recorte en pantalla)</span>
+    void EndScissorMode(void);                                  <span class="comment">// Finaliza el modo tijera</span>
+    void BeginVrStereoMode(VrStereoConfig config);              <span class="comment">// Inicia el renderizado estéreo (requiere simulador VR)</span>
+    void EndVrStereoMode(void);                                 <span class="comment">// Finaliza el renderizado estéreo</span>
+
+    <span class="comment">// Funciones de configuración estéreo VR</span>
+    VrStereoConfig LoadVrStereoConfig(VrDeviceInfo device);     <span class="comment">// Carga la configuración estéreo VR para un dispositivo</span>
+    void UnloadVrStereoConfig(VrStereoConfig config);           <span class="comment">// Descarga la configuración estéreo VR</span>
+
+    <span class="comment">// Funciones de gestión de Shaders</span>
+    Shader LoadShader(const char *vsFileName, const char *fsFileName);   <span class="comment">// Carga shader desde archivos</span>
+    Shader LoadShaderFromMemory(const char *vsCode, const char *fsCode); <span class="comment">// Carga shader desde cadenas de texto</span>
+    bool IsShaderValid(Shader shader);                                   <span class="comment">// Comprueba si un shader es válido (cargado en GPU)</span>
+    int GetShaderLocation(Shader shader, const char *uniformName);       <span class="comment">// Obtiene la ubicación de un uniform del shader</span>
+    int GetShaderLocationAttrib(Shader shader, const char *attribName);  <span class="comment">// Obtiene la ubicación de un atributo del shader</span>
+    void SetShaderValue(Shader shader, int locIndex, const void *value, int uniformType);               <span class="comment">// Establece valor de uniform</span>
+    void SetShaderValueV(Shader shader, int locIndex, const void *value, int uniformType, int count);   <span class="comment">// Establece vector de valores uniform</span>
+    void SetShaderValueMatrix(Shader shader, int locIndex, Matrix mat);         <span class="comment">// Establece matriz 4x4 en uniform</span>
+    void SetShaderValueTexture(Shader shader, int locIndex, Texture2D texture); <span class="comment">// Establece textura en uniform</span>
+    void UnloadShader(Shader shader);                                    <span class="comment">// Descarga el shader de la memoria GPU (VRAM)</span>
+
+    <span class="comment">// Funciones de espacio de pantalla / mundo</span>
+    Ray GetScreenToWorldRay(Vector2 position, Camera camera);         <span class="comment">// Obtiene un rayo desde la posición de pantalla (ej. ratón)</span>
+    Vector2 GetWorldToScreen(Vector3 position, Camera camera);        <span class="comment">// Obtiene la posición en pantalla de una posición 3D del mundo</span>
+    Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera);    <span class="comment">// Posición de pantalla para cámara 2D</span>
+    Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera);    <span class="comment">// Posición de mundo para cámara 2D</span>
+    Matrix GetCameraMatrix(Camera camera);                            <span class="comment">// Obtiene la matriz de transformación de la cámara</span>
+
+    <span class="comment">// Funciones de tiempo (Timing)</span>
+    void SetTargetFPS(int fps);                                 <span class="comment">// Establece los FPS objetivo (máximo)</span>
+    float GetFrameTime(void);                                   <span class="comment">// Tiempo en segundos del último frame dibujado (delta time)</span>
+    double GetTime(void);                                       <span class="comment">// Tiempo transcurrido en segundos desde InitWindow()</span>
+    int GetFPS(void);                                           <span class="comment">// Obtiene los FPS actuales</span>
+
+    <span class="comment">// Funciones de control de frame personalizadas (Avanzado)</span>
+    void SwapScreenBuffer(void);                                <span class="comment">// Intercambia el buffer trasero con el delantero</span>
+    void PollInputEvents(void);                                 <span class="comment">// Registra todos los eventos de entrada</span>
+    void WaitTime(double seconds);                              <span class="comment">// Detiene la ejecución durante un tiempo</span>
+
+    <span class="comment">// Generación de valores aleatorios</span>
+    void SetRandomSeed(unsigned int seed);                      <span class="comment">// Establece la semilla del generador</span>
+    int GetRandomValue(int min, int max);                       <span class="comment">// Valor aleatorio entre min y max (ambos incluidos)</span>
+    int *LoadRandomSequence(unsigned int count, int min, int max); <span class="comment">// Carga secuencia aleatoria sin repeticiones</span>
+    void UnloadRandomSequence(int *sequence);                   <span class="comment">// Descarga la secuencia aleatoria</span>
+
+    <span class="comment">// Funciones misceláneas</span>
+    void TakeScreenshot(const char *fileName);                  <span class="comment">// Toma captura de pantalla</span>
+    void SetConfigFlags(unsigned int flags);                    <span class="comment">// Configura flags de inicio</span>
+    void OpenURL(const char *url);                              <span class="comment">// Abre una URL en el navegador del sistema</span>
+
+    <span class="comment">// Funciones de gestión de archivos (Files management)</span>
+    unsigned char *LoadFileData(const char *fileName, int *dataSize); <span class="comment">// Carga datos de archivo como array de bytes</span>
+    void UnloadFileData(unsigned char *data);                   <span class="comment">// Descarga los datos cargados</span>
+    bool SaveFileData(const char *fileName, void *data, int dataSize); <span class="comment">// Guarda datos en archivo</span>
+    char *LoadFileText(const char *fileName);                   <span class="comment">// Carga texto de archivo</span>
+    void UnloadFileText(char *text);                            <span class="comment">// Descarga el texto cargado</span>
+    bool SaveFileText(const char *fileName, char *text);        <span class="comment">// Guarda texto en archivo</span>
+
+    <span class="comment">// Sistema de archivos</span>
+    bool FileExists(const char *fileName);                      <span class="comment">// Comprueba si el archivo existe</span>
+    bool DirectoryExists(const char *dirPath);                  <span class="comment">// Comprueba si el directorio existe</span>
+    bool IsFileExtension(const char *fileName, const char *ext); <span class="comment">// Comprueba la extensión del archivo</span>
+    const char *GetFileExtension(const char *fileName);         <span class="comment">// Obtiene la extensión</span>
+    const char *GetFileName(const char *filePath);              <span class="comment">// Obtiene el nombre del archivo desde una ruta</span>
+    const char *GetWorkingDirectory(void);                      <span class="comment">// Obtiene el directorio de trabajo actual</span>
+    const char *GetApplicationDirectory(void);                  <span class="comment">// Obtiene el directorio de la aplicación</span>
+    bool ChangeDirectory(const char *dir);                      <span class="comment">// Cambia el directorio de trabajo</span>
+
+    <span class="comment">// Funciones de entrada: Teclado (Keyboard)</span>
+    bool IsKeyPressed(int key);                             <span class="comment">// Comprueba si una tecla ha sido pulsada una vez</span>
+    bool IsKeyDown(int key);                                <span class="comment">// Comprueba si una tecla está siendo pulsada</span>
+    bool IsKeyReleased(int key);                            <span class="comment">// Comprueba si una tecla ha sido soltada una vez</span>
+    bool IsKeyUp(int key);                                  <span class="comment">// Comprueba si una tecla NO está pulsada</span>
+    int GetKeyPressed(void);                                <span class="comment">// Obtiene la tecla pulsada de la cola</span>
+    void SetExitKey(int key);                               <span class="comment">// Define tecla para salir (defecto: ESC)</span>
+
+    <span class="comment">// Funciones de entrada: Ratón (Mouse)</span>
+    bool IsMouseButtonPressed(int button);                  <span class="comment">// Clic de ratón (una vez)</span>
+    bool IsMouseButtonDown(int button);                     <span class="comment">// Botón de ratón mantenido</span>
+    bool IsMouseButtonReleased(int button);                 <span class="comment">// Botón de ratón soltado</span>
+    int GetMouseX(void);                                    <span class="comment">// Posición X del ratón</span>
+    int GetMouseY(void);                                    <span class="comment">// Posición Y del ratón</span>
+    Vector2 GetMousePosition(void);                         <span class="comment">// Posición XY del ratón</span>
+    void SetMousePosition(int x, int y);                    <span class="comment">// Establece posición del ratón</span>
+    float GetMouseWheelMove(void);                          <span class="comment">// Movimiento de la rueda del ratón</span>
+
+    <span class="comment">// Gestión de Gestos y Táctil</span>
+    void SetGesturesEnabled(unsigned int flags);      <span class="comment">// Habilita un conjunto de gestos</span>
+    bool IsGestureDetected(unsigned int gesture);     <span class="comment">// Comprueba si se detectó un gesto</span>
+    float GetGestureHoldDuration(void);               <span class="comment">// Obtener la duración de mantener el gesto en segundos</span>
+    Vector2 GetGestureDragVector(void);               <span class="comment">// Obtener el vector de arrastre del gesto</span>
+    float GetGestureDragAngle(void);                  <span class="comment">// Obtener el ángulo de arrastre del gesto</span>
+    Vector2 GetGesturePinchVector(void);              <span class="comment">// Obtener el cambio (delta) del gesto de pellizco</span>
+    float GetGesturePinchAngle(void);                 <span class="comment">// Obtener el ángulo del gesto de pellizco</span>
+
+
+    void UpdateCamera(Camera *camera, int mode);      <span class="comment">// Actualizar la posición de la cámara para el modo seleccionado</span>
+    void UpdateCameraPro(Camera *camera, Vector3 movement, Vector3 rotation, float zoom); <span class="comment">// Actualizar el movimiento/rotación de la cámara</span>
+</pre>
+
+</body>
+</html>
