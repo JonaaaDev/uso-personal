@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <h1>VERSION 2.0</h1>
+    <h1>VERSION 3</h1>
     <h2>RCORE</h2>
 <pre>
     <span class="comment">// Funciones relacionadas con la ventana</span>
@@ -217,67 +217,73 @@
 
 <h1>RTEXT</h1>
 <pre>
-    <span class="comment">// Funciones de carga/descarga de fuentes</span>
-    <span class="keyword">Font</span> GetFontDefault(<span class="keyword">void</span>);                                                            <span class="comment">// Obtiene la fuente predeterminada</span>
-    <span class="keyword">Font</span> LoadFont(<span class="keyword">const char</span> *fileName);                                                  <span class="comment">// Carga una fuente desde un archivo a la memoria de la GPU (VRAM)</span>
-    <span class="keyword">Font</span> LoadFontEx(<span class="keyword">const char</span> *fileName, <span class="keyword">int</span> fontSize, <span class="keyword">int</span> *codepoints, <span class="keyword">int</span> codepointCount); <span class="comment">// Carga una fuente con parámetros extendidos (NULL para codepoints y 0 para cargar el set por defecto)</span>
-    <span class="keyword">Font</span> LoadFontFromImage(Image image, Color key, <span class="keyword">int</span> firstChar);                        <span class="comment">// Carga una fuente desde una Imagen (estilo XNA)</span>
-    <span class="keyword">Font</span> LoadFontFromMemory(<span class="keyword">const char</span> *fileType, <span class="keyword">const unsigned char</span> *fileData, <span class="keyword">int</span> dataSize, <span class="keyword">int</span> fontSize, <span class="keyword">int</span> *codepoints, <span class="keyword">int</span> codepointCount); <span class="comment">// Carga fuente desde memoria (ej. '.ttf')</span>
-    <span class="keyword">bool</span> IsFontValid(Font font);                                                          <span class="comment">// Comprueba si una fuente es válida (datos cargados, no comprueba textura GPU)</span>
-    GlyphInfo *LoadFontData(<span class="keyword">const unsigned char</span> *fileData, <span class="keyword">int</span> dataSize, <span class="keyword">int</span> fontSize, <span class="keyword">int</span> *codepoints, <span class="keyword">int</span> codepointCount, <span class="keyword">int</span> type); <span class="comment">// Carga datos de fuente para uso posterior</span>
-    Image GenImageFontAtlas(<span class="keyword">const</span> GlyphInfo *glyphs, Rectangle **glyphRecs, <span class="keyword">int</span> glyphCount, <span class="keyword">int</span> fontSize, <span class="keyword">int</span> padding, <span class="keyword">int</span> packMethod); <span class="comment">// Genera atlas de fuente usando info de glifos</span>
-    <span class="keyword">void</span> UnloadFontData(GlyphInfo *glyphs, <span class="keyword">int</span> glyphCount);                               <span class="comment">// Descarga info de glifos de la fuente (RAM)</span>
-    <span class="keyword">void</span> UnloadFont(Font font);                                                           <span class="comment">// Descarga la fuente de la memoria de la GPU (VRAM)</span>
-    <span class="keyword">bool</span> ExportFontAsCode(Font font, <span class="keyword">const char</span> *fileName);                               <span class="comment">// Exporta fuente como archivo de código, devuelve true si tiene éxito</span>
+
+    <span class="comment">// Establecer textura y rectángulo para usar en el dibujado de formas</span>
+    <span class="comment">// NOTA: Puede ser útil cuando se usan formas básicas y una sola fuente,</span>
+    <span class="comment">// definiendo un rectángulo blanco de un carácter de la fuente permitiría dibujar todo en una sola llamada de dibujo</span>
+    void SetShapesTexture(Texture2D texture, Rectangle source);       <span class="comment">// Establecer textura y rectángulo para usar en el dibujado de formas</span>
+    Texture2D GetShapesTexture(void);                                 <span class="comment">// Obtener la textura usada para dibujar formas</span>
+    Rectangle GetShapesTextureRectangle(void);                        <span class="comment">// Obtener el rectángulo de origen de la textura usado para dibujar formas</span>
     
-    <span class="comment">// Funciones de dibujo de texto</span>
-    <span class="keyword">void</span> DrawFPS(<span class="keyword">int</span> posX, <span class="keyword">int</span> posY);                                                     <span class="comment">// Dibuja los FPS actuales</span>
-    <span class="keyword">void</span> DrawText(<span class="keyword">const char</span> *text, <span class="keyword">int</span> posX, <span class="keyword">int</span> posY, <span class="keyword">int</span> fontSize, Color color);       <span class="comment">// Dibuja texto (fuente por defecto)</span>
-    <span class="keyword">void</span> DrawTextEx(Font font, <span class="keyword">const char</span> *text, Vector2 position, <span class="keyword">float</span> fontSize, <span class="keyword">float</span> spacing, Color tint); <span class="comment">// Dibuja texto usando fuente y parámetros adicionales</span>
-    <span class="keyword">void</span> DrawTextPro(Font font, <span class="keyword">const char</span> *text, Vector2 position, Vector2 origin, <span class="keyword">float</span> rotation, <span class="keyword">float</span> fontSize, <span class="keyword">float</span> spacing, Color tint); <span class="comment">// Dibuja texto con parámetros pro (rotación)</span>
-    <span class="keyword">void</span> DrawTextCodepoint(Font font, <span class="keyword">int</span> codepoint, Vector2 position, <span class="keyword">float</span> fontSize, Color tint); <span class="comment">// Dibuja un solo carácter (codepoint)</span>
-    <span class="keyword">void</span> DrawTextCodepoints(Font font, <span class="keyword">const int</span> *codepoints, <span class="keyword">int</span> codepointCount, Vector2 position, <span class="keyword">float</span> fontSize, <span class="keyword">float</span> spacing, Color tint); <span class="comment">// Dibuja múltiples caracteres (codepoint)</span>
+    <span class="comment">// Funciones básicas de dibujo de formas</span>
+    void DrawPixel(int posX, int posY, Color color); <span class="comment">// Dibujar un píxel usando geometría [Puede ser lento, usar con cuidado]</span>
+    void DrawPixelV(Vector2 position, Color color); <span class="comment">// Dibujar un píxel usando geometría (versión Vector) [Puede ser lento, usar con cuidado]</span>
+    void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color); <span class="comment">// Dibujar una línea</span>
+    void DrawLineV(Vector2 startPos, Vector2 endPos, Color color); <span class="comment">// Dibujar una línea (usando líneas de gl)</span>
+    void DrawLineEx(Vector2 startPos, Vector2 endPos, float thick, Color color); <span class="comment">// Dibujar una línea (usando triángulos/cuadriláteros)</span>
+    void DrawLineStrip(const Vector2 *points, int pointCount, Color color); <span class="comment">// Dibujar una secuencia de líneas (usando líneas de gl)</span>
+    void DrawLineBezier(Vector2 startPos, Vector2 endPos, float thick, Color color); <span class="comment">// Dibujar segmento de línea con interpolación cúbica Bézier entrada-salida</span>
+    void DrawCircle(int centerX, int centerY, float radius, Color color); <span class="comment">// Dibujar un círculo relleno de color</span>
+    void DrawCircleSector(Vector2 center, float radius, float startAngle, float endAngle, int segments, Color color); <span class="comment">// Dibujar una porción de círculo</span>
+    void DrawCircleSectorLines(Vector2 center, float radius, float startAngle, float endAngle, int segments, Color color); <span class="comment">// Dibujar el contorno de un sector de círculo</span>
+    void DrawCircleGradient(int centerX, int centerY, float radius, Color inner, Color outer); <span class="comment">// Dibujar un círculo relleno con degradado</span>
+    void DrawCircleV(Vector2 center, float radius, Color color); <span class="comment">// Dibujar un círculo relleno de color (versión Vector)</span>
+    void DrawCircleLines(int centerX, int centerY, float radius, Color color); <span class="comment">// Dibujar contorno de círculo</span>
+    void DrawCircleLinesV(Vector2 center, float radius, Color color); <span class="comment">// Dibujar contorno de círculo (versión Vector)</span>
+    void DrawEllipse(int centerX, int centerY, float radiusH, float radiusV, Color color); <span class="comment">// Dibujar una elipse</span>
+    void DrawEllipseLines(int centerX, int centerY, float radiusH, float radiusV, Color color); <span class="comment">// Dibujar contorno de elipse</span>
+    void DrawRing(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color); <span class="comment">// Dibujar un anillo</span>
+    void DrawRingLines(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color); <span class="comment">// Dibujar contorno de anillo</span>
+    void DrawRectangle(int posX, int posY, int width, int height, Color color); <span class="comment">// Dibujar un rectángulo relleno de color</span>
+    void DrawRectangleV(Vector2 position, Vector2 size, Color color); <span class="comment">// Dibujar un rectángulo relleno de color (versión Vector)</span>
+    void DrawRectangleRec(Rectangle rec, Color color); <span class="comment">// Dibujar un rectángulo relleno de color</span>
+    void DrawRectanglePro(Rectangle rec, Vector2 origin, float rotation, Color color); <span class="comment">// Dibujar un rectángulo relleno de color con parámetros avanzados</span>
+    void DrawRectangleGradientV(int posX, int posY, int width, int height, Color top, Color bottom); <span class="comment">// Dibujar un rectángulo con degradado vertical</span>
+    void DrawRectangleGradientH(int posX, int posY, int width, int height, Color left, Color right); <span class="comment">// Dibujar un rectángulo con degradado horizontal</span>
+    void DrawRectangleGradientEx(Rectangle rec, Color topLeft, Color bottomLeft, Color topRight, Color bottomRight); <span class="comment">// Dibujar un rectángulo con degradado usando colores personalizados en los vértices</span>
+    void DrawRectangleLines(int posX, int posY, int width, int height, Color color); <span class="comment">// Dibujar contorno de rectángulo</span>
+    void DrawRectangleLinesEx(Rectangle rec, float lineThick, Color color); <span class="comment">// Dibujar contorno de rectángulo con parámetros extendidos</span>
+    void DrawRectangleRounded(Rectangle rec, float roundness, int segments, Color color); <span class="comment">// Dibujar rectángulo con bordes redondeados</span>
+    void DrawRectangleRoundedLines(Rectangle rec, float roundness, int segments, Color color); <span class="comment">// Dibujar líneas de rectángulo con bordes redondeados</span>
+    void DrawRectangleRoundedLinesEx(Rectangle rec, float roundness, int segments, float lineThick, Color color); <span class="comment">// Dibujar contorno de rectángulo con bordes redondeados</span>
+    void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color); <span class="comment">// Dibujar un triángulo relleno de color (vértices en orden antihorario)</span>
+    void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color); <span class="comment">// Dibujar contorno de triángulo (vértices en orden antihorario)</span>
+    void DrawTriangleFan(const Vector2 *points, int pointCount, Color color); <span class="comment">// Dibujar abanico de triángulos definido por puntos (el primer vértice es el centro)</span>
+    void DrawTriangleStrip(const Vector2 *points, int pointCount, Color color); <span class="comment">// Dibujar tira de triángulos definida por puntos</span>
+    void DrawPoly(Vector2 center, int sides, float radius, float rotation, Color color); <span class="comment">// Dibujar un polígono regular (versión Vector)</span>
+    void DrawPolyLines(Vector2 center, int sides, float radius, float rotation, Color color); <span class="comment">// Dibujar contorno de un polígono de n lados</span>
+    void DrawPolyLinesEx(Vector2 center, int sides, float radius, float rotation, float lineThick, Color color); <span class="comment">// Dibujar contorno de polígono con parámetros extendidos</span>
     
-    <span class="comment">// Funciones de información de fuente</span>
-    <span class="keyword">void</span> SetTextLineSpacing(<span class="keyword">int</span> spacing);                                                 <span class="comment">// Establece el espaciado de línea vertical</span>
-    <span class="keyword">int</span> MeasureText(<span class="keyword">const char</span> *text, <span class="keyword">int</span> fontSize);                                      <span class="comment">// Mide el ancho de cadena para fuente por defecto</span>
-    Vector2 MeasureTextEx(Font font, <span class="keyword">const char</span> *text, <span class="keyword">float</span> fontSize, <span class="keyword">float</span> spacing);    <span class="comment">// Mide el tamaño de cadena para una fuente</span>
-    <span class="keyword">int</span> GetGlyphIndex(Font font, <span class="keyword">int</span> codepoint);                                          <span class="comment">// Obtiene el índice del glifo para un codepoint (devuelve '?' si no existe)</span>
-    GlyphInfo GetGlyphInfo(Font font, <span class="keyword">int</span> codepoint);                                     <span class="comment">// Obtiene info del glifo para un codepoint (devuelve '?' si no existe)</span>
-    Rectangle GetGlyphAtlasRec(Font font, <span class="keyword">int</span> codepoint);                                 <span class="comment">// Obtiene el rectángulo del glifo en el atlas</span>
+    <span class="comment">// Funciones de dibujo de splines</span>
+    void DrawSplineLinear(const Vector2 *points, int pointCount, float thick, Color color); <span class="comment">// Dibujar spline lineal, mínimo 2 puntos</span>
+    void DrawSplineBasis(const Vector2 *points, int pointCount, float thick, Color color); <span class="comment">// Dibujar spline B-Spline, mínimo 4 puntos</span>
+    void DrawSplineCatmullRom(const Vector2 *points, int pointCount, float thick, Color color); <span class="comment">// Dibujar spline Catmull-Rom, mínimo 4 puntos</span>
+    void DrawSplineBezierQuadratic(const Vector2 *points, int pointCount, float thick, Color color); <span class="comment">// Dibujar spline Bézier cuadrática, mínimo 3 puntos</span>
+    void DrawSplineBezierCubic(const Vector2 *points, int pointCount, float thick, Color color); <span class="comment">// Dibujar spline Bézier cúbica, mínimo 4 puntos</span>
     
-    <span class="comment">// Funciones de gestión de codepoints (caracteres unicode)</span>
-    <span class="keyword">char</span> *LoadUTF8(<span class="keyword">const int</span> *codepoints, <span class="keyword">int</span> length);                <span class="comment">// Carga texto UTF-8 codificado desde array de codepoints</span>
-    <span class="keyword">void</span> UnloadUTF8(<span class="keyword">char</span> *text);                                      <span class="comment">// Descarga texto UTF-8 de la memoria</span>
-    <span class="keyword">int</span> *LoadCodepoints(<span class="keyword">const char</span> *text, <span class="keyword">int</span> *count);                <span class="comment">// Carga todos los codepoints desde un string UTF-8</span>
-    <span class="keyword">void</span> UnloadCodepoints(<span class="keyword">int</span> *codepoints);                           <span class="comment">// Descarga datos de codepoints de la memoria</span>
-    <span class="keyword">int</span> GetCodepointCount(<span class="keyword">const char</span> *text);                          <span class="comment">// Obtiene número total de codepoints en string UTF-8</span>
-    <span class="keyword">int</span> GetCodepoint(<span class="keyword">const char</span> *text, <span class="keyword">int</span> *codepointSize);           <span class="comment">// Obtiene el siguiente codepoint en string UTF-8</span>
-    <span class="keyword">int</span> GetCodepointNext(<span class="keyword">const char</span> *text, <span class="keyword">int</span> *codepointSize);       <span class="comment">// Obtiene el siguiente codepoint en string UTF-8</span>
-    <span class="keyword">int</span> GetCodepointPrevious(<span class="keyword">const char</span> *text, <span class="keyword">int</span> *codepointSize);   <span class="comment">// Obtiene el codepoint anterior en string UTF-8</span>
-    <span class="keyword">const char</span> *CodepointToUTF8(<span class="keyword">int</span> codepoint, <span class="keyword">int</span> *utf8Size);        <span class="comment">// Codifica un codepoint en array de bytes UTF-8</span>
-    
-    <span class="comment">// Funciones de gestión de strings (solo caracteres de un byte, no UTF-8)</span>
-    <span class="comment">// NOTA: ¡Cuidado! Algunas funciones reservan memoria interna para los strings devueltos.</span>
-    <span class="keyword">int</span> TextCopy(<span class="keyword">char</span> *dst, <span class="keyword">const char</span> *src);                                             <span class="comment">// Copia un string a otro, devuelve bytes copiados</span>
-    <span class="keyword">bool</span> TextIsEqual(<span class="keyword">const char</span> *text1, <span class="keyword">const char</span> *text2);                               <span class="comment">// Comprueba si dos strings son iguales</span>
-    <span class="keyword">unsigned int</span> TextLength(<span class="keyword">const char</span> *text);                                            <span class="comment">// Obtiene longitud de texto (hasta '\0')</span>
-    <span class="keyword">const char</span> *TextFormat(<span class="keyword">const char</span> *text, ...);                                        <span class="comment">// Formateo de texto con variables (estilo sprintf())</span>
-    <span class="keyword">const char</span> *TextSubtext(<span class="keyword">const char</span> *text, <span class="keyword">int</span> position, <span class="keyword">int</span> length);                  <span class="comment">// Obtiene una parte de un string</span>
-    <span class="keyword">char</span> *TextReplace(<span class="keyword">const char</span> *text, <span class="keyword">const char</span> *replace, <span class="keyword">const char</span> *by);             <span class="comment">// Reemplaza texto (¡ADVERTENCIA: requiere liberar memoria!)</span>
-    <span class="keyword">char</span> *TextInsert(<span class="keyword">const char</span> *text, <span class="keyword">const char</span> *insert, <span class="keyword">int</span> position);                 <span class="comment">// Inserta texto en posición (¡ADVERTENCIA: requiere liberar memoria!)</span>
-    <span class="keyword">const char</span> *TextJoin(<span class="keyword">const char</span> **textList, <span class="keyword">int</span> count, <span class="keyword">const char</span> *delimiter);        <span class="comment">// Une strings con un delimitador</span>
-    <span class="keyword">const char</span> **TextSplit(<span class="keyword">const char</span> *text, <span class="keyword">char</span> delimiter, <span class="keyword">int</span> *count);                 <span class="comment">// Divide texto en múltiples strings</span>
-    <span class="keyword">void</span> TextAppend(<span class="keyword">char</span> *text, <span class="keyword">const char</span> *append, <span class="keyword">int</span> *position);                       <span class="comment">// Añade texto en posición específica y mueve el cursor</span>
-    <span class="keyword">int</span> TextFindIndex(<span class="keyword">const char</span> *text, <span class="keyword">const char</span> *find);                                <span class="comment">// Busca primera ocurrencia de texto</span>
-    <span class="keyword">const char</span> *TextToUpper(<span class="keyword">const char</span> *text);                      <span class="comment">// Versión en mayúsculas del string</span>
-    <span class="keyword">const char</span> *TextToLower(<span class="keyword">const char</span> *text);                      <span class="comment">// Versión en minúsculas del string</span>
-    <span class="keyword">const char</span> *TextToPascal(<span class="keyword">const char</span> *text);                     <span class="comment">// Versión en PascalCase del string</span>
-    <span class="keyword">const char</span> *TextToSnake(<span class="keyword">const char</span> *text);                      <span class="comment">// Versión en snake_case del string</span>
-    <span class="keyword">const char</span> *TextToCamel(<span class="keyword">const char</span> *text);                      <span class="comment">// Versión en camelCase del string</span>
-    
-    <span class="keyword">int</span> TextToInteger(<span class="keyword">const char</span> *text);                            <span class="comment">// Obtiene valor entero desde texto (no soporta negativos)</span>
-    <span class="keyword">float</span> TextToFloat(<span class="keyword">const char</span> *text);                            <span class="comment">// Obtiene valor flotante desde texto (no soporta negativos)</span>
+    <span class="comment">// Funciones de colisión entre formas básicas</span>
+    bool CheckCollisionRecs(Rectangle rec1, Rectangle rec2); <span class="comment">// Comprobar colisión entre dos rectángulos</span>
+    bool CheckCollisionCircles(Vector2 center1, float radius1, Vector2 center2, float radius2); <span class="comment">// Comprobar colisión entre dos círculos</span>
+    bool CheckCollisionCircleRec(Vector2 center, float radius, Rectangle rec); <span class="comment">// Comprobar colisión entre círculo y rectángulo</span>
+    bool CheckCollisionCircleLine(Vector2 center, float radius, Vector2 p1, Vector2 p2); <span class="comment">// Comprobar si un círculo colisiona con una línea</span>
+    bool CheckCollisionPointRec(Vector2 point, Rectangle rec); <span class="comment">// Comprobar si un punto está dentro de un rectángulo</span>
+    bool CheckCollisionPointCircle(Vector2 point, Vector2 center, float radius); <span class="comment">// Comprobar si un punto está dentro de un círculo</span>
+    bool CheckCollisionPointTriangle(Vector2 point, Vector2 p1, Vector2 p2, Vector2 p3); <span class="comment">// Comprobar si un punto está dentro de un triángulo</span>
+    bool CheckCollisionPointLine(Vector2 point, Vector2 p1, Vector2 p2, int threshold); <span class="comment">// Comprobar si un punto pertenece a una línea con margen definido</span>
+    bool CheckCollisionPointPoly(Vector2 point, const Vector2 *points, int pointCount); <span class="comment">// Comprobar si un punto está dentro de un polígono</span>
+    bool CheckCollisionLines(Vector2 startPos1, Vector2 endPos1, Vector2 startPos2, Vector2 endPos2, Vector2 *collisionPoint); <span class="comment">// Comprobar colisión entre dos líneas y devolver punto de colisión</span>
+    Rectangle GetCollisionRec(Rectangle rec1, Rectangle rec2); <span class="comment">// Obtener el rectángulo de colisión entre dos rectángulos</span>
+
 </pre>
 </body>
 </html>
