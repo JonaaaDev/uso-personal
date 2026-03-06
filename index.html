@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <h1>VERSION 3</h1>
+    <h1>VERSION 4</h1>
     <h2>RCORE</h2>
 <pre>
     <span class="comment">// Funciones relacionadas con la ventana</span>
@@ -283,6 +283,74 @@
     bool CheckCollisionPointPoly(Vector2 point, const Vector2 *points, int pointCount); <span class="comment">// Comprobar si un punto está dentro de un polígono</span>
     bool CheckCollisionLines(Vector2 startPos1, Vector2 endPos1, Vector2 startPos2, Vector2 endPos2, Vector2 *collisionPoint); <span class="comment">// Comprobar colisión entre dos líneas y devolver punto de colisión</span>
     Rectangle GetCollisionRec(Rectangle rec1, Rectangle rec2); <span class="comment">// Obtener el rectángulo de colisión entre dos rectángulos</span>
+
+</pre>
+
+
+
+<h1>RTEXT</h1>
+<pre>    
+    <span class="comment">// Funciones de carga y descarga de fuentes</span>
+    Font GetFontDefault(void); <span class="comment">// Obtener la fuente predeterminada</span>
+    Font LoadFont(const char *fileName); <span class="comment">// Cargar fuente desde archivo a la memoria de la GPU (VRAM)</span>
+    Font LoadFontEx(const char *fileName, int fontSize, int *codepoints, int codepointCount); <span class="comment">// Cargar fuente desde archivo con parámetros extendidos, usar NULL para codepoints y 0 para codepointCount para cargar el conjunto de caracteres por defecto, el tamaño de fuente se da en altura en píxeles</span>
+    Font LoadFontFromImage(Image image, Color key, int firstChar); <span class="comment">// Cargar fuente desde imagen (estilo XNA)</span>
+    Font LoadFontFromMemory(const char *fileType, const unsigned char *fileData, int dataSize, int fontSize, int *codepoints, int codepointCount); <span class="comment">// Cargar fuente desde un buffer de memoria, fileType se refiere a la extensión: por ejemplo '.ttf'</span>
+    bool IsFontValid(Font font); <span class="comment">// Comprobar si una fuente es válida (datos de fuente cargados, ADVERTENCIA: la textura de GPU no se comprueba)</span>
+    GlyphInfo *LoadFontData(const unsigned char *fileData, int dataSize, int fontSize, int *codepoints, int codepointCount, int type); <span class="comment">// Cargar datos de fuente para uso posterior</span>
+    Image GenImageFontAtlas(const GlyphInfo *glyphs, Rectangle **glyphRecs, int glyphCount, int fontSize, int padding, int packMethod); <span class="comment">// Generar atlas de fuente en imagen usando información de caracteres</span>
+    void UnloadFontData(GlyphInfo *glyphs, int glyphCount); <span class="comment">// Liberar datos de caracteres de la fuente (RAM)</span>
+    void UnloadFont(Font font); <span class="comment">// Liberar fuente de la memoria de la GPU (VRAM)</span>
+    bool ExportFontAsCode(Font font, const char *fileName); <span class="comment">// Exportar fuente como archivo de código, devuelve true si tiene éxito</span>
+    
+    <span class="comment">// Funciones de dibujo de texto</span>
+    void DrawFPS(int posX, int posY); <span class="comment">// Dibujar los FPS actuales</span>
+    void DrawText(const char *text, int posX, int posY, int fontSize, Color color); <span class="comment">// Dibujar texto (usando la fuente predeterminada)</span>
+    void DrawTextEx(Font font, const char *text, Vector2 position, float fontSize, float spacing, Color tint); <span class="comment">// Dibujar texto usando una fuente y parámetros adicionales</span>
+    void DrawTextPro(Font font, const char *text, Vector2 position, Vector2 origin, float rotation, float fontSize, float spacing, Color tint); <span class="comment">// Dibujar texto usando fuente y parámetros avanzados (rotación)</span>
+    void DrawTextCodepoint(Font font, int codepoint, Vector2 position, float fontSize, Color tint); <span class="comment">// Dibujar un carácter (codepoint)</span>
+    void DrawTextCodepoints(Font font, const int *codepoints, int codepointCount, Vector2 position, float fontSize, float spacing, Color tint); <span class="comment">// Dibujar múltiples caracteres (codepoints)</span>
+    
+    <span class="comment">// Funciones de información de fuentes de texto</span>
+    void SetTextLineSpacing(int spacing); <span class="comment">// Establecer el espaciado vertical entre líneas al dibujar con saltos de línea</span>
+    int MeasureText(const char *text, int fontSize); <span class="comment">// Medir el ancho de una cadena usando la fuente predeterminada</span>
+    Vector2 MeasureTextEx(Font font, const char *text, float fontSize, float spacing); <span class="comment">// Medir el tamaño de una cadena usando una fuente</span>
+    int GetGlyphIndex(Font font, int codepoint); <span class="comment">// Obtener el índice del glifo en la fuente para un codepoint (carácter unicode), usa '?' si no se encuentra</span>
+    GlyphInfo GetGlyphInfo(Font font, int codepoint); <span class="comment">// Obtener información del glifo para un codepoint (carácter unicode), usa '?' si no se encuentra</span>
+    Rectangle GetGlyphAtlasRec(Font font, int codepoint); <span class="comment">// Obtener el rectángulo del glifo en el atlas de la fuente para un codepoint (carácter unicode), usa '?' si no se encuentra</span>
+    
+    <span class="comment">// Funciones de gestión de codepoints de texto (caracteres unicode)</span>
+    char *LoadUTF8(const int *codepoints, int length); <span class="comment">// Cargar texto codificado en UTF-8 desde un arreglo de codepoints</span>
+    void UnloadUTF8(char *text); <span class="comment">// Liberar texto UTF-8 generado desde un arreglo de codepoints</span>
+    int *LoadCodepoints(const char *text, int *count); <span class="comment">// Cargar todos los codepoints desde una cadena UTF-8, la cantidad se devuelve por parámetro</span>
+    void UnloadCodepoints(int *codepoints); <span class="comment">// Liberar datos de codepoints de la memoria</span>
+    int GetCodepointCount(const char *text); <span class="comment">// Obtener el número total de codepoints en una cadena codificada en UTF-8</span>
+    int GetCodepoint(const char *text, int *codepointSize); <span class="comment">// Obtener el siguiente codepoint en una cadena UTF-8, se devuelve 0x3f('?') en caso de fallo</span>
+    int GetCodepointNext(const char *text, int *codepointSize); <span class="comment">// Obtener el siguiente codepoint en una cadena UTF-8, se devuelve 0x3f('?') en caso de fallo</span>
+    int GetCodepointPrevious(const char *text, int *codepointSize); <span class="comment">// Obtener el codepoint anterior en una cadena UTF-8, se devuelve 0x3f('?') en caso de fallo</span>
+    const char *CodepointToUTF8(int codepoint, int *utf8Size); <span class="comment">// Codificar un codepoint en un arreglo de bytes UTF-8 (el tamaño se devuelve por parámetro)</span>
+    
+    <span class="comment">// Funciones de gestión de cadenas de texto (no UTF-8, solo caracteres byte)</span>
+    <span class="comment">// NOTA: Algunas cadenas asignan memoria internamente para las cadenas devueltas, ¡tener cuidado!</span>
+    int TextCopy(char *dst, const char *src); <span class="comment">// Copiar una cadena a otra, devuelve los bytes copiados</span>
+    bool TextIsEqual(const char *text1, const char *text2); <span class="comment">// Comprobar si dos cadenas de texto son iguales</span>
+    unsigned int TextLength(const char *text); <span class="comment">// Obtener longitud del texto, comprueba el final '\0'</span>
+    const char *TextFormat(const char *text, ...); <span class="comment">// Formatear texto con variables (estilo sprintf())</span>
+    const char *TextSubtext(const char *text, int position, int length); <span class="comment">// Obtener una parte de una cadena de texto</span>
+    char *TextReplace(const char *text, const char *replace, const char *by); <span class="comment">// Reemplazar texto en una cadena (ADVERTENCIA: la memoria debe liberarse)</span>
+    char *TextInsert(const char *text, const char *insert, int position); <span class="comment">// Insertar texto en una posición (ADVERTENCIA: la memoria debe liberarse)</span>
+    const char *TextJoin(const char **textList, int count, const char *delimiter); <span class="comment">// Unir cadenas de texto con un delimitador</span>
+    const char **TextSplit(const char *text, char delimiter, int *count); <span class="comment">// Dividir texto en múltiples cadenas</span>
+    void TextAppend(char *text, const char *append, int *position); <span class="comment">// Añadir texto en una posición específica y mover el cursor</span>
+    int TextFindIndex(const char *text, const char *find); <span class="comment">// Encontrar la primera aparición de un texto dentro de una cadena</span>
+    const char *TextToUpper(const char *text); <span class="comment">// Obtener la versión en mayúsculas de la cadena</span>
+    const char *TextToLower(const char *text); <span class="comment">// Obtener la versión en minúsculas de la cadena</span>
+    const char *TextToPascal(const char *text); <span class="comment">// Obtener la versión en formato PascalCase</span>
+    const char *TextToSnake(const char *text); <span class="comment">// Obtener la versión en formato snake_case</span>
+    const char *TextToCamel(const char *text); <span class="comment">// Obtener la versión en formato camelCase</span>
+    
+    int TextToInteger(const char *text); <span class="comment">// Obtener valor entero desde texto (valores negativos no soportados)</span>
+    float TextToFloat(const char *text); <span class="comment">// Obtener valor flotante desde texto (valores negativos no soportados)</span>
 
 </pre>
 </body>
