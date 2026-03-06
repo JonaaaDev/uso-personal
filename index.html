@@ -353,5 +353,55 @@
     float TextToFloat(const char *text); <span class="comment">// Obtener valor flotante desde texto (valores negativos no soportados)</span>
 
 </pre>
+
+
+
+
+<h1>RSTRUCT</h1>
+<pre>
+
+    struct Vector2; <span class="comment">// Vector2, 2 componentes</span>
+    struct Vector3; <span class="comment">// Vector3, 3 componentes</span>
+    struct Vector4; <span class="comment">// Vector4, 4 componentes</span>
+    struct Matrix; <span class="comment">// Matrix, 4x4 componentes, orden por columnas, estilo OpenGL, sistema de coordenadas diestro</span>
+    struct Color; <span class="comment">// Color, 4 componentes, R8G8B8A8 (32 bits)</span>
+    struct Rectangle; <span class="comment">// Rectangle, 4 componentes</span>
+    
+    struct Image; <span class="comment">// Image, datos de píxeles almacenados en memoria de CPU (RAM)</span>
+    struct Texture; <span class="comment">// Texture, datos de textura almacenados en memoria de GPU (VRAM)</span>
+    struct RenderTexture; <span class="comment">// RenderTexture, FBO para renderizar texturas</span>
+    struct NPatchInfo; <span class="comment">// NPatchInfo, información de diseño n-patch</span>
+    struct GlyphInfo; <span class="comment">// GlyphInfo, información de glifos de caracteres de fuente</span>
+    struct Font; <span class="comment">// Font, textura de la fuente y arreglo de datos GlyphInfo</span>
+    
+    struct Camera2D; <span class="comment">// Camera2D, define posición/orientación en espacio 2D</span>
+    struct Camera3D; <span class="comment">// Camera, define posición/orientación en espacio 3D</span>
+    
+    struct Shader; <span class="comment">// Shader</span>
+    struct MaterialMap; <span class="comment">// MaterialMap</span>
+    struct Material; <span class="comment">// Material, incluye shader y mapas</span>
+    struct Mesh; <span class="comment">// Mesh, datos de vértices y vao/vbo</span>
+    struct Model; <span class="comment">// Model, mallas, materiales y datos de animación</span>
+    struct ModelAnimation; <span class="comment">// ModelAnimation</span>
+    struct Transform; <span class="comment">// Transform, datos de transformación de vértices</span>
+    struct BoneInfo; <span class="comment">// Bone, hueso de animación esquelética</span>
+    struct Ray; <span class="comment">// Ray, rayo para raycasting</span>
+    struct RayCollision; <span class="comment">// RayCollision, información de impacto del rayo</span>
+    struct BoundingBox; <span class="comment">// BoundingBox</span>
+    
+    struct Wave; <span class="comment">// Wave, datos de onda de audio</span>
+    struct AudioStream; <span class="comment">// AudioStream, flujo de audio personalizado</span>
+    struct Sound; <span class="comment">// Sound</span>
+    struct Music; <span class="comment">// Music, flujo de audio; cualquier cosa mayor a ~10 segundos debería transmitirse en streaming</span>
+    
+    struct VrDeviceInfo; <span class="comment">// VrDeviceInfo, parámetros del dispositivo de realidad virtual (Head-Mounted Display)</span>
+    struct VrStereoConfig; <span class="comment">// VrStereoConfig, configuración de renderizado estéreo VR para el simulador</span>
+    
+    struct FilePathList; <span class="comment">// Lista de rutas de archivos</span>
+    
+    struct AutomationEvent; <span class="comment">// Evento de automatización</span>
+    struct AutomationEventList; <span class="comment">// Lista de eventos de automatización</span>
+
+</pre>
 </body>
 </html>
