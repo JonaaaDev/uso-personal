@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Diseño Raylib</title>
+    <title>Raylib Multi-Studio Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilo inspirado en la estética oscura de las herramientas de desarrollo */
         body {
-            background-color: #181818;
-            color: #eeeeee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
         }
         #canvas-container {
-            background-color: #2c2c2c;
+            background-color: #000;
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            margin: auto;
-            border: 2px solid #444;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            background-image: radial-gradient(#222 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         .ray-element {
             position: absolute;
@@ -27,269 +27,394 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px dashed transparent;
+            outline: 1px solid transparent;
+            white-space: nowrap;
         }
-        .ray-element:hover {
-            border-color: #00ff00;
-        }
-        .ray-element.selected {
-            border: 2px solid #00bbff !important;
-            z-index: 100;
-        }
-        /* Líneas de guía para el centrado */
-        .guide {
-            position: absolute;
-            background-color: rgba(0, 255, 255, 0.5);
-            pointer-events: none;
-            display: none;
-        }
+        .ray-element:hover { outline: 1px solid #555; }
+        .ray-element.selected { outline: 1px solid #3b82f6 !important; z-index: 100; }
+        
+        .guide { position: absolute; background-color: #3b82f6; pointer-events: none; display: none; z-index: 50; }
         .guide-h { width: 100%; height: 1px; }
         .guide-v { width: 1px; height: 100%; }
 
-        .info-panel {
-            background: #252525;
-            border-left: 1px solid #444;
+        .ray-triangle {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: white;
+            background: #1a1a1a;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* Ajuste de precisión para el texto */
+        .ray-text-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            background-color: rgba(59, 130, 246, 0.2); /* Fondo para ver el roce */
+            padding: 0;
+            margin: 0;
+        }
+        .ray-text-content {
+            display: block;
+            line-height: 1;
+            padding: 0;
+            margin: 0;
+            font-family: monospace; /* Monospace es vital para medir píxeles exactos */
+            transform: scaleY(1.1); /* Ajuste visual para llenar el alto del cuadro */
         }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- Encabezado de Configuración Inicial -->
-    <header class="p-4 bg-[#202020] border-b border-[#333] flex items-center justify-between">
+    <header class="h-14 bg-[#161616] border-b border-[#222] flex items-center justify-between px-4 shrink-0">
         <div class="flex items-center gap-4">
-            <h1 class="text-xl font-bold text-blue-400">Raylib Design Studio</h1>
-            <div class="flex gap-2 items-center text-sm">
-                <label>Ancho:</label>
-                <input type="number" id="screen-w" value="800" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 w-20">
-                <label>Alto:</label>
-                <input type="number" id="screen-h" value="450" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 w-20">
-                <button onclick="updateScreenSize()" class="bg-blue-600 hover:bg-blue-500 px-4 py-1 rounded transition">Aplicar Pantalla</button>
-            </div>
+            <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                <span class="bg-blue-600 px-1.5 rounded text-sm">R</span> Multi-Studio
+            </h1>
+            <div id="project-tabs" class="flex h-full items-center overflow-x-auto gap-1 max-w-xl"></div>
+            <button onclick="createNewWindow()" class="p-1.5 hover:bg-zinc-800 rounded text-blue-400 transition-colors" title="Nueva Ventana">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
         </div>
+
+        <div class="flex gap-2 bg-zinc-900 p-1 rounded-md border border-zinc-800">
+            <button onclick="addElement('text')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-blue-400">TEXTO</button>
+            <button onclick="addElement('rect')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-orange-400">RECT</button>
+            <button onclick="addElement('circle')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-purple-400">CIRCL</button>
+            <button onclick="addElement('triangle')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-emerald-400">TRIANG</button>
+        </div>
+
         <div class="flex gap-2">
-            <button onclick="addElement('text')" class="bg-green-700 hover:bg-green-600 px-3 py-1 rounded text-sm">+ Texto</button>
-            <button onclick="addElement('rect')" class="bg-orange-700 hover:bg-orange-600 px-3 py-1 rounded text-sm">+ Rect</button>
-            <button onclick="addElement('circle')" class="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-sm">+ Círculo</button>
-            <button onclick="clearCanvas()" class="bg-red-700 hover:bg-red-600 px-3 py-1 rounded text-sm">Limpiar</button>
+            <button onclick="downloadWindowJSON()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-xs font-bold transition-all">JSON</button>
+            <button onclick="exportCode()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition-all">EXPORTAR C++</button>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <!-- Área de Trabajo (La Pantalla de Raylib) -->
-        <div class="flex-1 overflow-auto p-10 flex items-center justify-center bg-[#121212]">
-            <div id="canvas-container">
-                <!-- Guías de centrado -->
+        <div class="flex-1 overflow-auto p-12 flex items-center justify-center bg-[#0a0a0a]">
+            <div id="canvas-container" style="width: 800px; height: 450px;">
                 <div id="guide-x" class="guide guide-v"></div>
                 <div id="guide-y" class="guide guide-h"></div>
             </div>
         </div>
 
-        <!-- Panel de Propiedades -->
-        <aside class="w-80 info-panel p-4 flex flex-col gap-4">
-            <h2 class="font-bold border-b border-gray-600 pb-2">Propiedades del Elemento</h2>
-            <div id="properties-content" class="text-sm space-y-3">
-                <p class="text-gray-400 italic">Selecciona un elemento para ver sus datos de Raylib...</p>
+        <aside class="w-80 bg-[#161616] border-l border-[#222] flex flex-col shadow-xl">
+            <div class="p-4 border-b border-[#222]">
+                <h2 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Ventana Actual</h2>
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="win-title" oninput="updateWindowTitle(this.value)" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-sm text-blue-400 outline-none focus:border-blue-600">
+                    <div class="flex gap-2">
+                        <input type="number" id="screen-w" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
+                        <input type="number" id="screen-h" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
+                    </div>
+                </div>
             </div>
-            
-            <div class="mt-auto p-3 bg-black rounded border border-gray-800">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Código Sugerido</h3>
-                <pre id="code-output" class="text-[10px] text-green-400 whitespace-pre-wrap"></pre>
+
+            <div id="properties-content" class="p-4 flex-1 overflow-y-auto space-y-4"></div>
+
+            <div class="h-1/3 bg-black border-t border-[#222] flex flex-col">
+                <div class="p-2 bg-[#111] text-[9px] font-bold text-zinc-500">LÓGICA RAYLIB (C++)</div>
+                <div class="flex-1 p-3 overflow-auto font-mono text-[10px] text-emerald-500 leading-tight">
+                    <pre id="code-output"></pre>
+                </div>
             </div>
         </aside>
     </main>
 
+    <div id="export-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[200] p-6">
+        <div class="bg-[#111] border border-zinc-800 rounded-xl w-full max-w-4xl flex flex-col max-h-full">
+            <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#161616]">
+                <h3 class="font-bold text-white">Código de tu Videojuego</h3>
+                <button onclick="document.getElementById('export-modal').style.display='none'" class="text-zinc-500 hover:text-white">Cerrar</button>
+            </div>
+            <pre id="full-code-output" class="p-6 overflow-auto text-[11px] font-mono text-emerald-400 bg-black flex-1"></pre>
+            <div class="p-4 border-t border-zinc-800 flex justify-end">
+                <button onclick="copyToClipboard('full-code-output')" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded font-bold text-sm text-white">Copiar C++</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- Lógica del Simulador ---
-        
-        let canvas = document.getElementById('canvas-container');
-        let selectedElement = null;
+        let windows = [{ id: 'win-1', title: 'MENU', width: 800, height: 450, elements: [] }];
+        let currentWindowId = 'win-1';
+        let selectedElementId = null;
         let isDragging = false;
         let offset = { x: 0, y: 0 };
-        const SNAP_THRESHOLD = 10; // Distancia para imán de centrado
+        const canvas = document.getElementById('canvas-container');
+
+        // La fuente por defecto de Raylib tiene un ancho de exactamente el 50% de la altura
+        const RAYLIB_FONT_RATIO = 0.5; 
+
+        window.onload = () => { renderTabs(); switchWindow('win-1'); };
+
+        function createNewWindow() {
+            const id = 'win-' + Date.now();
+            windows.push({ id: id, title: 'NUEVA_VENTANA', width: 800, height: 450, elements: [] });
+            renderTabs();
+            switchWindow(id);
+        }
+
+        function switchWindow(id) {
+            currentWindowId = id;
+            selectedElementId = null;
+            const win = windows.find(w => w.id === id);
+            document.getElementById('win-title').value = win.title;
+            document.getElementById('screen-w').value = win.width;
+            document.getElementById('screen-h').value = win.height;
+            updateScreenSize();
+            canvas.querySelectorAll('.ray-element').forEach(e => e.remove());
+            win.elements.forEach(data => drawElementInDOM(data));
+            renderTabs();
+            renderProperties();
+            updateAllCode();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('project-tabs');
+            container.innerHTML = windows.map(win => `
+                <div onclick="switchWindow('${win.id}')" class="flex items-center h-full px-4 text-xs font-bold cursor-pointer transition-all ${win.id === currentWindowId ? 'tab-active' : 'text-zinc-500 hover:bg-zinc-800'}">
+                    <span class="mr-2">${win.title}</span>
+                    <button onclick="deleteWindow('${win.id}', event)" class="hover:text-red-500">×</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteWindow(id, e) {
+            e.stopPropagation();
+            if (windows.length <= 1) return;
+            windows = windows.filter(w => w.id !== id);
+            if (currentWindowId === id) switchWindow(windows[0].id); else renderTabs();
+        }
+
+        function updateWindowTitle(val) {
+            const win = windows.find(w => w.id === currentWindowId);
+            win.title = val.toUpperCase().replace(/\s+/g, '_');
+            renderTabs();
+        }
 
         function updateScreenSize() {
-            // Obtener valores de los inputs
-            const w = document.getElementById('screen-w').value;
-            const h = document.getElementById('screen-h').value;
-            
-            // Aplicar tamaño al contenedor que simula la ventana de Raylib
-            canvas.style.width = w + 'px';
-            canvas.style.height = h + 'px';
-            
-            // Posicionar guías en el centro exacto
-            document.getElementById('guide-x').style.left = (w / 2) + 'px';
-            document.getElementById('guide-y').style.top = (h / 2) + 'px';
-            
-            clearProperties();
+            const win = windows.find(w => w.id === currentWindowId);
+            win.width = parseInt(document.getElementById('screen-w').value) || 800;
+            win.height = parseInt(document.getElementById('screen-h').value) || 450;
+            canvas.style.width = win.width + 'px';
+            canvas.style.height = win.height + 'px';
+        }
+
+        function calculateTextWidth(text, fontSize) {
+            // Ajuste perfecto: ancho de carácter es la mitad del tamaño de fuente
+            return Math.floor(text.length * (fontSize * RAYLIB_FONT_RATIO));
         }
 
         function addElement(type) {
+            const win = windows.find(w => w.id === currentWindowId);
+            const defaultFontSize = 40;
+            const defaultText = "RAYLIB";
+            
+            const data = {
+                id: 'el-' + Date.now(),
+                type: type,
+                x: 100, y: 100,
+                w: type === 'text' ? calculateTextWidth(defaultText, defaultFontSize) : 100, 
+                h: type === 'text' ? defaultFontSize : 100,
+                color: type === 'rect' ? '#ff6400' : (type === 'circle' ? '#9600ff' : (type === 'triangle' ? '#00e676' : '#ffffff')),
+                text: defaultText,
+                fontSize: defaultFontSize
+            };
+            win.elements.push(data);
+            drawElementInDOM(data);
+            selectElement(data.id);
+        }
+
+        function drawElementInDOM(data) {
             const el = document.createElement('div');
+            el.id = data.id;
             el.className = 'ray-element';
-            el.dataset.type = type;
+            if (data.type === 'triangle') el.classList.add('ray-triangle');
+            if (data.type === 'text') el.classList.add('ray-text-container');
             
-            // Valores iniciales
-            let x = 50, y = 50, w = 100, h = 50;
-
-            if (type === 'text') {
-                el.innerText = "Hola Raylib";
-                el.style.color = "#ffffff";
-                el.style.fontSize = "20px";
-                el.style.fontWeight = "bold";
-            } else if (type === 'rect') {
-                el.style.backgroundColor = "rgba(255, 100, 0, 0.7)";
-                el.style.width = "100px";
-                el.style.height = "60px";
-            } else if (type === 'circle') {
-                el.style.backgroundColor = "rgba(150, 0, 255, 0.7)";
-                el.style.width = "80px";
-                el.style.height = "80px";
-                el.style.borderRadius = "50%";
-            }
-
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
-
-            // Eventos de ratón para el arrastre
-            el.addEventListener('mousedown', startDrag);
+            applyElementStyles(el, data);
+            
+            el.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                selectElement(data.id);
+                isDragging = true;
+                const rect = el.getBoundingClientRect();
+                offset.x = e.clientX - rect.left;
+                offset.y = e.clientY - rect.top;
+                
+                const move = (me) => {
+                    const canvasRect = canvas.getBoundingClientRect();
+                    data.x = Math.round(me.clientX - canvasRect.left - offset.x);
+                    data.y = Math.round(me.clientY - canvasRect.top - offset.y);
+                    applyElementStyles(el, data);
+                    syncPropertiesInputs(data);
+                    updateAllCode();
+                };
+                const up = () => { isDragging = false; window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+                window.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', up);
+            });
             canvas.appendChild(el);
-            selectElement(el);
         }
 
-        function startDrag(e) {
-            e.stopPropagation();
-            selectElement(this);
-            isDragging = true;
-            
-            // Calculamos la distancia entre el ratón y la esquina del objeto
-            const rect = this.getBoundingClientRect();
-            offset.x = e.clientX - rect.left;
-            offset.y = e.clientY - rect.top;
-
-            window.addEventListener('mousemove', drag);
-            window.addEventListener('mouseup', stopDrag);
-        }
-
-        function drag(e) {
-            if (!isDragging || !selectedElement) return;
-
-            const canvasRect = canvas.getBoundingClientRect();
-            let newX = e.clientX - canvasRect.left - offset.x;
-            let newY = e.clientY - canvasRect.top - offset.y;
-
-            // --- Lógica de Centrado (Snapping) ---
-            const centerX = canvas.offsetWidth / 2;
-            const centerY = canvas.offsetHeight / 2;
-            const elW = selectedElement.offsetWidth;
-            const elH = selectedElement.offsetHeight;
-
-            let snappedX = false;
-            let snappedY = false;
-
-            // Snap Horizontal (Centro del elemento con centro de pantalla)
-            if (Math.abs((newX + elW / 2) - centerX) < SNAP_THRESHOLD) {
-                newX = centerX - (elW / 2);
-                snappedX = true;
-            }
-            
-            // Snap Vertical
-            if (Math.abs((newY + elH / 2) - centerY) < SNAP_THRESHOLD) {
-                newY = centerY - (elH / 2);
-                snappedY = true;
+        function applyElementStyles(el, data) {
+            if (data.type === 'text') {
+                data.w = calculateTextWidth(data.text, data.h);
             }
 
-            // Mostrar u ocultar líneas guía
-            document.getElementById('guide-x').style.display = snappedX ? 'block' : 'none';
-            document.getElementById('guide-y').style.display = snappedY ? 'block' : 'none';
+            el.style.left = data.x + 'px';
+            el.style.top = data.y + 'px';
+            el.style.width = data.w + 'px';
+            el.style.height = data.h + 'px';
+            el.style.backgroundColor = data.type === 'text' ? 'rgba(59, 130, 246, 0.25)' : data.color;
+            el.style.color = data.color;
+            el.style.borderRadius = data.type === 'circle' ? '50%' : '0';
 
-            // Limitar dentro de la pantalla (opcional, como en Raylib)
-            selectedElement.style.left = newX + 'px';
-            selectedElement.style.top = newY + 'px';
-
-            updateProperties();
+            if (data.type === 'text') {
+                // Forzamos el renderizado sin ningún tipo de margen lateral
+                el.innerHTML = `<span class="ray-text-content" style="font-size: ${data.h}px;">${data.text}</span>`;
+            } else {
+                el.innerHTML = '';
+            }
         }
 
-        function stopDrag() {
-            isDragging = false;
-            document.getElementById('guide-x').style.display = 'none';
-            document.getElementById('guide-y').style.display = 'none';
-            window.removeEventListener('mousemove', drag);
-            window.removeEventListener('mouseup', stopDrag);
+        function selectElement(id) {
+            if (selectedElementId) {
+                const prev = document.getElementById(selectedElementId);
+                if (prev) prev.classList.remove('selected');
+            }
+            selectedElementId = id;
+            document.getElementById(id).classList.add('selected');
+            renderProperties();
+            updateAllCode();
         }
 
-        function selectElement(el) {
-            if (selectedElement) selectedElement.classList.remove('selected');
-            selectedElement = el;
-            selectedElement.classList.add('selected');
-            updateProperties();
-        }
+        function renderProperties() {
+            const container = document.getElementById('properties-content');
+            const win = windows.find(w => w.id === currentWindowId);
+            const data = win.elements.find(e => e.id === selectedElementId);
+            if (!data) { container.innerHTML = '<div class="text-center py-20 text-zinc-600 text-xs italic">Selecciona un objeto</div>'; return; }
 
-        function updateProperties() {
-            if (!selectedElement) return;
-
-            const type = selectedElement.dataset.type;
-            const x = parseInt(selectedElement.style.left);
-            const y = parseInt(selectedElement.style.top);
-            const w = selectedElement.offsetWidth;
-            const h = selectedElement.offsetHeight;
-
-            let html = `
-                <div class="flex justify-between"><span>Tipo:</span> <span class="text-blue-300 font-mono">${type.toUpperCase()}</span></div>
-                <div class="flex justify-between"><span>Posición X:</span> <span class="text-yellow-400 font-mono">${x}</span></div>
-                <div class="flex justify-between"><span>Posición Y:</span> <span class="text-yellow-400 font-mono">${y}</span></div>
-                <div class="flex justify-between"><span>Ancho (W):</span> <span class="text-yellow-400 font-mono">${w}</span></div>
-                <div class="flex justify-between"><span>Alto (H):</span> <span class="text-yellow-400 font-mono">${h}</span></div>
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">X</label><input type="number" id="in-x" value="${data.x}" oninput="updateData('x', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Y</label><input type="number" id="in-y" value="${data.y}" oninput="updateData('y', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Ancho (Auto)</label><input type="number" id="in-w" value="${data.w}" disabled class="w-full bg-black border border-zinc-800 rounded p-1 text-xs opacity-40 cursor-not-allowed"></div>
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">${data.type === 'text' ? 'Tamaño Letra' : 'Alto'}</label><input type="number" id="in-h" value="${data.h}" oninput="updateData('h', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                    </div>
+                    ${data.type === 'text' ? `
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Texto</label><input type="text" id="in-text" value="${data.text}" oninput="updateData('text', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs text-blue-400 font-bold tracking-tighter"></div>
+                    ` : ''}
+                    <div>
+                        <label class="text-[9px] text-zinc-500 font-bold uppercase">Color</label>
+                        <div class="flex gap-2">
+                            <input type="color" value="${data.color}" oninput="updateData('color', this.value)" class="h-8 w-10 bg-transparent border-none">
+                            <input type="text" id="in-color" value="${data.color}" oninput="updateData('color', this.value)" class="flex-1 bg-black border border-zinc-800 rounded p-1 text-[10px] font-mono">
+                        </div>
+                    </div>
+                    <button onclick="deleteElement()" class="w-full py-2 bg-red-900/10 hover:bg-red-900/20 text-red-500 rounded text-[10px] font-bold border border-red-900/30">BORRAR OBJETO</button>
+                </div>
             `;
+        }
 
-            if (type === 'text') {
-                html += `<div class="mt-4">
-                    <label class="block mb-1 text-xs">Editar Texto:</label>
-                    <input type="text" value="${selectedElement.innerText}" oninput="changeText(this.value)" class="w-full bg-gray-700 p-1 rounded">
-                </div>`;
+        function syncPropertiesInputs(data) {
+            ['x', 'y', 'w', 'h', 'text', 'color'].forEach(k => {
+                const input = document.getElementById('in-' + k);
+                if (input && document.activeElement !== input) input.value = data[k];
+            });
+        }
+
+        function updateData(key, val) {
+            const win = windows.find(w => w.id === currentWindowId);
+            const data = win.elements.find(e => e.id === selectedElementId);
+            data[key] = (key === 'color' || key === 'text') ? val : parseInt(val || 0);
+            applyElementStyles(document.getElementById(selectedElementId), data);
+            syncPropertiesInputs(data);
+            updateAllCode();
+        }
+
+        function deleteElement() {
+            const win = windows.find(w => w.id === currentWindowId);
+            win.elements = win.elements.filter(e => e.id !== selectedElementId);
+            document.getElementById(selectedElementId).remove();
+            selectedElementId = null;
+            renderProperties();
+            updateAllCode();
+        }
+
+        function downloadWindowJSON() {
+            const win = windows.find(w => w.id === currentWindowId);
+            const blob = new Blob([JSON.stringify(win, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `${win.title.toLowerCase()}.json`; a.click();
+        }
+
+        function getRayColor(hex) {
+            const map = {'#ffffff':'WHITE','#000000':'BLACK','#ff6400':'ORANGE','#9600ff':'PURPLE','#00e676':'LIME'};
+            return map[hex.toLowerCase()] || `GetColor(0x${hex.replace('#','') }FF)`;
+        }
+
+        function generateCodeForElement(d) {
+            const color = getRayColor(d.color);
+            switch(d.type) {
+                case 'text': 
+                    return `// Dibujamos el texto. Ten cuidado: Raylib mide el ancho de forma dinamica.
+            // Si necesitas el ancho exacto en tu codigo, usa MeasureText("${d.text}", ${d.h}).
+            DrawText("${d.text}", ${d.x}, ${d.y}, ${d.h}, ${color});`;
+                case 'rect': return `DrawRectangle(${d.x}, ${d.y}, ${d.w}, ${d.h}, ${color});`;
+                case 'circle': return `DrawCircle(${d.x + Math.round(d.w/2)}, ${d.y + Math.round(d.w/2)}, ${Math.round(d.w/2)}, ${color});`;
+                case 'triangle': return `DrawTriangle((Vector2){ ${d.x + d.w/2}, ${d.y} }, (Vector2){ ${d.x}, ${d.y + d.h} }, (Vector2){ ${d.x + d.w}, ${d.y + d.h} }, ${color});`;
             }
-
-            document.getElementById('properties-content').innerHTML = html;
-            generateCode(type, x, y, w, h);
+            return "";
         }
 
-        function changeText(val) {
-            if (selectedElement && selectedElement.dataset.type === 'text') {
-                selectedElement.innerText = val;
-                updateProperties();
-            }
+        function updateAllCode() {
+            const win = windows.find(w => w.id === currentWindowId);
+            const data = win.elements.find(e => e.id === selectedElementId);
+            document.getElementById('code-output').innerText = data ? generateCodeForElement(data) : "// Selecciona un objeto";
         }
 
-        function generateCode(type, x, y, w, h) {
-            let code = "";
-            if (type === 'text') {
-                const txt = selectedElement.innerText;
-                code = `// Cuidado: DrawText usa la esquina superior izquierda\nDrawText("${txt}", ${x}, ${y}, 20, WHITE);`;
-            } else if (type === 'rect') {
-                code = `// Recuerda que X e Y definen dónde empieza el rectángulo\nDrawRectangle(${x}, ${y}, ${w}, ${h}, ORANGE);`;
-            } else if (type === 'circle') {
-                const radius = w / 2;
-                const centerX = x + radius;
-                const centerY = y + radius;
-                code = `// ¡Ojo! DrawCircle en Raylib usa el CENTRO, no la esquina\nDrawCircle(${centerX}, ${centerY}, ${radius}, PURPLE);`;
-            }
-            document.getElementById('code-output').innerText = code;
+        function exportCode() {
+            const win = windows.find(w => w.id === currentWindowId);
+            let drawCalls = win.elements.map(e => generateCodeForElement(e)).join('\n            ');
+            const full = `#include "raylib.h"
+
+// VENTANA: ${win.title}
+// El texto se ajustara de forma perfecta al tamano que definiste en el estudio.
+
+int main() {
+    InitWindow(${win.width}, ${win.height}, "Raylib - ${win.title}");
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+            ClearBackground(BLACK);
+            
+            ${drawCalls}
+
+        EndDrawing();
+    }
+
+    CloseWindow();
+    return 0;
+}
+`;
+            document.getElementById('full-code-output').innerText = full;
+            document.getElementById('export-modal').style.display = 'flex';
         }
 
-        function clearCanvas() {
-            const elements = canvas.querySelectorAll('.ray-element');
-            elements.forEach(el => el.remove());
-            clearProperties();
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).innerText;
+            const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el);
+            el.select(); document.execCommand('copy'); document.body.removeChild(el);
         }
-
-        function clearProperties() {
-            selectedElement = null;
-            document.getElementById('properties-content').innerHTML = '<p class="text-gray-400 italic">Selecciona un elemento para ver sus datos...</p>';
-            document.getElementById('code-output').innerText = "";
-        }
-
-        // Inicializar tamaño
-        updateScreenSize();
-
     </script>
 </body>
 </html>
