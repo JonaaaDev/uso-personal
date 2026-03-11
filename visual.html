@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raylib Multi-Studio Pro - Memoria y Capas</title>
+    <title>Raylib Studio - Transformaciones Interactivas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -28,24 +28,52 @@
             align-items: center;
             justify-content: center;
             outline: 1px solid transparent;
-            white-space: nowrap;
         }
         .ray-element:hover { outline: 1px solid #555; }
         .ray-element.selected { outline: 1px solid #3b82f6 !important; z-index: 50; }
         
-        /* Prioridad de capas: El texto siempre arriba */
-        .ray-text-container { z-index: 100 !important; }
-
-        .guide { 
-            position: absolute; 
-            background-color: #3b82f6; 
-            pointer-events: none; 
-            display: none; 
-            z-index: 200; 
-            box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
+        .ray-text-container { 
+            z-index: 100 !important; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+            background-color: rgba(59, 130, 246, 0.15);
         }
-        .guide-h { width: 100%; height: 1px; }
-        .guide-v { width: 1px; height: 100%; }
+        .ray-text-content {
+            display: block;
+            line-height: 1;
+            font-family: monospace;
+            white-space: nowrap;
+            transform: scaleY(1.1);
+        }
+
+        .resizer {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border: 1px solid #3b82f6;
+            border-radius: 2px;
+            z-index: 60;
+            display: none;
+        }
+        .selected .resizer { display: block; }
+        .resizer-br { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        
+        .line-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border: 2px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 70;
+            cursor: crosshair;
+            display: none;
+        }
+        .selected .line-handle { display: block; }
 
         .ray-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 
@@ -54,23 +82,20 @@
             color: white;
             background: #1a1a1a;
         }
-        
-        .ray-text-container {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            overflow: hidden;
-            background-color: rgba(59, 130, 246, 0.15);
-            padding: 0;
-            margin: 0;
+
+        .ray-line-container {
+            pointer-events: none;
+            overflow: visible !important;
         }
-        .ray-text-content {
-            display: block;
-            line-height: 1;
-            padding: 0;
-            margin: 0;
-            font-family: monospace;
-            transform: scaleY(1.1);
+        .line-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .line-hitbox {
+            pointer-events: auto;
+            cursor: move;
         }
     </style>
 </head>
@@ -79,10 +104,10 @@
     <header class="h-14 bg-[#161616] border-b border-[#222] flex items-center justify-between px-4 shrink-0">
         <div class="flex items-center gap-4">
             <h1 class="text-lg font-bold text-white flex items-center gap-2">
-                <span class="bg-blue-600 px-1.5 rounded text-sm">R</span> Multi-Studio
+                <span class="bg-blue-600 px-1.5 rounded text-sm">R</span> Studio Interact
             </h1>
-            <div id="project-tabs" class="flex h-full items-center overflow-x-auto gap-1 max-w-xl"></div>
-            <button onclick="createNewWindow()" class="p-1.5 hover:bg-zinc-800 rounded text-blue-400" title="Nueva Ventana">
+            <div id="project-tabs" class="flex h-full items-center overflow-x-auto gap-1"></div>
+            <button onclick="createNewWindow()" class="p-1.5 hover:bg-zinc-800 rounded text-blue-400">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
             </button>
         </div>
@@ -92,144 +117,116 @@
             <button onclick="addElement('rect')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-orange-400">RECT</button>
             <button onclick="addElement('circle')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-purple-400">CIRCL</button>
             <button onclick="addElement('triangle')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-emerald-400">TRIANG</button>
+            <button onclick="addElement('line')" class="px-3 py-1 hover:bg-zinc-800 rounded text-xs font-bold text-yellow-400 underline decoration-2">LINEA</button>
         </div>
 
         <div class="flex gap-2">
-            <button onclick="resetStorage()" class="px-4 py-1.5 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded text-xs font-bold transition-all border border-red-900/30">LIMPIAR TODO</button>
+            <button onclick="resetStorage()" class="px-4 py-1.5 bg-red-900/20 hover:bg-red-900/40 text-red-500 rounded text-xs font-bold">LIMPIAR</button>
             <button onclick="exportCode()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold">EXPORTAR C++</button>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <div class="flex-1 overflow-auto p-12 flex items-center justify-center bg-[#0a0a0a]">
-            <div id="canvas-container">
-                <div id="guide-screen-v" class="guide guide-v"></div>
-                <div id="guide-screen-h" class="guide guide-h"></div>
-                <div id="guide-target-v" class="guide guide-v !bg-yellow-400"></div>
-                <div id="guide-target-h" class="guide guide-h !bg-yellow-400"></div>
-            </div>
+        <div id="editor-view" class="flex-1 overflow-auto p-12 flex items-center justify-center bg-[#0a0a0a]" onclick="handleCanvasClick(event)">
+            <div id="canvas-container"></div>
         </div>
 
         <aside class="w-80 bg-[#161616] border-l border-[#222] flex flex-col">
             <div class="p-4 border-b border-[#222]">
-                <h2 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Configuración Ventana</h2>
-                <div class="flex flex-col gap-2">
-                    <input type="text" id="win-title" oninput="updateWindowTitle(this.value)" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-sm text-blue-400">
-                    <div class="flex gap-2">
-                        <input type="number" id="screen-w" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
-                        <input type="number" id="screen-h" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
-                    </div>
+                <h2 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Escena Actual</h2>
+                <input type="text" id="win-title" oninput="updateWindowTitle(this.value)" class="w-full bg-black border border-zinc-800 rounded px-2 py-1.5 text-sm text-blue-400 mb-2">
+                <div class="flex gap-2">
+                    <input type="number" id="screen-w" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
+                    <input type="number" id="screen-h" oninput="updateScreenSize()" class="bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs w-1/2">
                 </div>
             </div>
-
             <div id="properties-content" class="p-4 flex-1 overflow-y-auto space-y-4"></div>
-
             <div class="p-4 border-t border-[#222] bg-[#111] text-[10px] text-zinc-500 flex items-center justify-between">
-                <span>Estado: <span class="text-emerald-500 font-bold">Autoguardado</span></span>
-                <span id="save-indicator" class="opacity-0 transition-opacity duration-300">Guardado...</span>
+                <span>Persistencia: <span class="text-emerald-500">Activa</span></span>
+                <span id="save-indicator" class="opacity-0 transition-opacity text-blue-400">Guardado</span>
             </div>
         </aside>
     </main>
 
-    <div id="export-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[200] p-6">
+    <div id="export-modal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[200] p-6">
         <div class="bg-[#111] border border-zinc-800 rounded-xl w-full max-w-4xl flex flex-col max-h-full">
-            <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-[#161616]">
-                <h3 class="font-bold text-white uppercase text-sm tracking-widest">Código Fuente C++</h3>
-                <button onclick="document.getElementById('export-modal').style.display='none'" class="text-zinc-500 hover:text-white text-2xl">&times;</button>
+            <div class="p-4 border-b border-zinc-800 flex justify-between items-center">
+                <h3 class="font-bold text-white text-sm uppercase">Código C++ para Raylib</h3>
+                <button onclick="document.getElementById('export-modal').style.display='none'" class="text-zinc-500 hover:text-white">&times;</button>
             </div>
             <pre id="full-code-output" class="p-6 overflow-auto text-[11px] font-mono text-emerald-400 bg-black flex-1"></pre>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'RAYLIB_STUDIO_SAVE';
-        let windows = [{ id: 'win-1', title: 'NIVEL_1', width: 800, height: 450, elements: [] }];
+        const STORAGE_KEY = 'RAYLIB_STUDIO_INTERACT_V3';
+        let windows = [{ id: 'win-1', title: 'ESCENA_1', width: 800, height: 450, elements: [] }];
         let currentWindowId = 'win-1';
         let selectedElementId = null;
         let isDragging = false;
-        let offset = { x: 0, y: 0 };
+        
         const canvas = document.getElementById('canvas-container');
-        const SNAP_THRESHOLD = 10;
-        const RAYLIB_FONT_RATIO = 0.5; 
+        const RAYLIB_FONT_RATIO = 0.5;
 
         window.onload = () => {
-            loadFromStorage();
-            renderTabs();
-            switchWindow(currentWindowId);
-        };
-
-        // --- SISTEMA DE PERSISTENCIA ---
-        function saveToStorage() {
-            const data = {
-                windows: windows,
-                currentWindowId: currentWindowId
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            
-            const indicator = document.getElementById('save-indicator');
-            indicator.style.opacity = '1';
-            setTimeout(() => indicator.style.opacity = '0', 1000);
-        }
-
-        function loadFromStorage() {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const data = JSON.parse(saved);
                 windows = data.windows;
                 currentWindowId = data.currentWindowId;
             }
+            renderTabs();
+            switchWindow(currentWindowId);
+        };
+
+        // Función vital para evitar deselecciones accidentales
+        function handleCanvasClick(e) {
+            // Si el clic ocurre directamente en el fondo oscuro o en el lienzo negro, deseleccionamos.
+            // Pero si el clic viene de un hijo (un objeto), no hacemos nada aquí.
+            if (e.target.id === 'editor-view' || e.target.id === 'canvas-container') {
+                deselect();
+            }
         }
 
         function resetStorage() {
-            if (confirm("¿Seguro que quieres borrar todo tu trabajo?")) {
+            if(confirm("¿Estás seguro de que quieres borrar todo el proyecto?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
         }
 
-        function createNewWindow() {
-            const id = 'win-' + Date.now();
-            windows.push({ id: id, title: 'ESCENA_NUEVA', width: 800, height: 450, elements: [] });
-            saveToStorage();
-            renderTabs();
-            switchWindow(id);
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ windows, currentWindowId }));
+            const ind = document.getElementById('save-indicator');
+            if(ind) {
+                ind.style.opacity = '1';
+                setTimeout(() => ind.style.opacity = '0', 800);
+            }
         }
 
         function switchWindow(id) {
             currentWindowId = id;
             selectedElementId = null;
-            const win = windows.find(w => w.id === id) || windows[0];
-            currentWindowId = win.id;
-            
+            const win = windows.find(w => w.id === id);
             document.getElementById('win-title').value = win.title;
             document.getElementById('screen-w').value = win.width;
             document.getElementById('screen-h').value = win.height;
-            updateScreenSize();
+            canvas.style.width = win.width + 'px';
+            canvas.style.height = win.height + 'px';
             
-            canvas.querySelectorAll('.ray-element').forEach(e => e.remove());
-            win.elements.forEach(data => drawElementInDOM(data));
-            
+            canvas.innerHTML = ''; // Limpiamos el lienzo
+            win.elements.forEach(data => drawElement(data));
             renderTabs();
             renderProperties();
-            saveToStorage();
+            save();
         }
 
         function renderTabs() {
-            const container = document.getElementById('project-tabs');
-            container.innerHTML = windows.map(win => `
-                <div onclick="switchWindow('${win.id}')" class="flex items-center h-full px-4 text-xs font-bold cursor-pointer transition-colors ${win.id === currentWindowId ? 'tab-active' : 'text-zinc-500 hover:text-white'}">
-                    <span>${win.title}</span>
+            document.getElementById('project-tabs').innerHTML = windows.map(w => `
+                <div onclick="switchWindow('${w.id}')" class="px-4 py-4 text-xs font-bold cursor-pointer ${w.id === currentWindowId ? 'tab-active' : 'text-zinc-500'}">
+                    ${w.title}
                 </div>
             `).join('');
-        }
-
-        function updateScreenSize() {
-            const win = windows.find(w => w.id === currentWindowId);
-            win.width = parseInt(document.getElementById('screen-w').value) || 800;
-            win.height = parseInt(document.getElementById('screen-h').value) || 450;
-            canvas.style.width = win.width + 'px';
-            canvas.style.height = win.height + 'px';
-            saveToStorage();
         }
 
         function calculateTextWidth(text, fontSize) {
@@ -240,99 +237,72 @@
             const win = windows.find(w => w.id === currentWindowId);
             const data = {
                 id: 'el-' + Date.now(),
-                type: type,
-                x: 50, y: 50,
-                w: type === 'text' ? calculateTextWidth("HOLA_RAYLIB", 30) : 100, 
+                type,
+                x: 100, y: 100,
+                x2: 250, y2: 100, 
+                w: type === 'text' ? calculateTextWidth("HOLA_RAYLIB", 30) : 100,
                 h: type === 'text' ? 30 : 100,
-                color: type === 'text' ? '#3b82f6' : '#ffffff',
+                color: type === 'line' ? '#ffff00' : (type === 'text' ? '#3b82f6' : '#ffffff'),
                 text: "HOLA_RAYLIB"
             };
             win.elements.push(data);
-            drawElementInDOM(data);
-            selectElement(data.id);
-            saveToStorage();
+            drawElement(data);
+            select(data.id);
+            save();
         }
 
-        function drawElementInDOM(data) {
+        function drawElement(data) {
             const el = document.createElement('div');
             el.id = data.id;
             el.className = 'ray-element';
+            if (data.type === 'line') el.classList.add('ray-line-container');
             if (data.type === 'triangle') el.classList.add('ray-triangle');
             if (data.type === 'text') el.classList.add('ray-text-container');
             
-            applyElementStyles(el, data);
-            
             el.addEventListener('mousedown', (e) => {
+                // Detenemos la propagación para que el lienzo no detecte el clic y deseleccione
                 e.stopPropagation();
-                selectElement(data.id);
-                isDragging = true;
-                const rect = el.getBoundingClientRect();
-                offset.x = e.clientX - rect.left;
-                offset.y = e.clientY - rect.top;
-                
-                const move = (me) => {
-                    if (!isDragging) return;
-                    const canvasRect = canvas.getBoundingClientRect();
-                    let newX = Math.round(me.clientX - canvasRect.left - offset.x);
-                    let newY = Math.round(me.clientY - canvasRect.top - offset.y);
-                    
-                    const win = windows.find(w => w.id === currentWindowId);
-                    hideGuides();
-
-                    // Alineación automática (Snapping)
-                    const centerX = win.width / 2 - data.w / 2;
-                    const centerY = win.height / 2 - data.h / 2;
-
-                    if (Math.abs(newX - centerX) < SNAP_THRESHOLD) { newX = centerX; showGuide('screen-v', win.width / 2); }
-                    if (Math.abs(newY - centerY) < SNAP_THRESHOLD) { newY = centerY; showGuide('screen-h', win.height / 2); }
-
-                    win.elements.forEach(other => {
-                        if (other.id === data.id) return;
-                        const otherCenterX = other.x + other.w / 2;
-                        if (Math.abs((newX + data.w / 2) - otherCenterX) < SNAP_THRESHOLD) {
-                            newX = otherCenterX - data.w / 2;
-                            showGuide('target-v', otherCenterX);
-                        }
-                        const otherCenterY = other.y + other.h / 2;
-                        if (Math.abs((newY + data.h / 2) - otherCenterY) < SNAP_THRESHOLD) {
-                            newY = otherCenterY - data.h / 2;
-                            showGuide('target-h', otherCenterY);
-                        }
-                    });
-
-                    data.x = newX;
-                    data.y = newY;
-                    applyElementStyles(el, data);
-                    syncPropertiesInputs(data);
-                };
-
-                const up = () => { 
-                    isDragging = false; 
-                    hideGuides();
-                    saveToStorage();
-                    window.removeEventListener('mousemove', move); 
-                    window.removeEventListener('mouseup', up); 
-                };
-                window.addEventListener('mousemove', move);
-                window.addEventListener('mouseup', up);
+                select(data.id);
+                startDrag(e, data);
             });
+
             canvas.appendChild(el);
+            applyStyles(el, data);
         }
 
-        function showGuide(id, pos) {
-            const g = document.getElementById('guide-' + id);
-            if (!g) return;
-            g.style.display = 'block';
-            if (id.includes('-v')) g.style.left = pos + 'px';
-            else g.style.top = pos + 'px';
-        }
+        function applyStyles(el, data) {
+            if (!el) return;
+            el.innerHTML = ''; // Limpiamos para redibujar manejadores
 
-        function hideGuides() {
-            document.querySelectorAll('.guide').forEach(g => g.style.display = 'none');
-        }
+            if (data.type === 'line') {
+                el.style.left = '0px'; el.style.top = '0px';
+                el.style.width = '100%'; el.style.height = '100%';
+                
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute('class', 'line-svg');
+                svg.innerHTML = `
+                    <line x1="${data.x}" y1="${data.y}" x2="${data.x2}" y2="${data.y2}" stroke="${data.color}" stroke-width="2" />
+                    <line x1="${data.x}" y1="${data.y}" x2="${data.x2}" y2="${data.y2}" stroke="transparent" stroke-width="20" class="line-hitbox" />
+                `;
+                el.appendChild(svg);
 
-        function applyElementStyles(el, data) {
-            if (data.type === 'text') data.w = calculateTextWidth(data.text, data.h);
+                // Manejadores de línea manuales
+                const h1 = createHandle(data.x, data.y, (mx, my) => { data.x = mx; data.y = my; });
+                const h2 = createHandle(data.x2, data.y2, (mx, my) => { data.x2 = mx; data.y2 = my; });
+                el.appendChild(h1);
+                el.appendChild(h2);
+                return;
+            }
+
+            if (data.type === 'text') {
+                data.w = calculateTextWidth(data.text, data.h);
+                const span = document.createElement('span');
+                span.className = 'ray-text-content';
+                span.style.fontSize = data.h + 'px';
+                span.innerText = data.text;
+                el.appendChild(span);
+            }
+
             el.style.left = data.x + 'px';
             el.style.top = data.y + 'px';
             el.style.width = data.w + 'px';
@@ -340,20 +310,93 @@
             el.style.backgroundColor = data.type === 'text' ? 'rgba(59, 130, 246, 0.15)' : data.color;
             el.style.color = data.color;
             el.style.borderRadius = data.type === 'circle' ? '50%' : '0';
-            if (data.type === 'text') {
-                el.innerHTML = `<span class="ray-text-content" style="font-size: ${data.h}px;">${data.text}</span>`;
-            } else {
-                el.innerHTML = '';
-            }
+
+            // Añadir resizer para formas normales
+            const resizer = document.createElement('div');
+            resizer.className = 'resizer resizer-br';
+            resizer.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                startResize(e, data);
+            });
+            el.appendChild(resizer);
         }
 
-        function selectElement(id) {
-            if (selectedElementId) {
-                const prev = document.getElementById(selectedElementId);
-                if (prev) prev.classList.remove('selected');
-            }
+        function createHandle(x, y, onMove) {
+            const h = document.createElement('div');
+            h.className = 'line-handle';
+            h.style.left = x + 'px';
+            h.style.top = y + 'px';
+            h.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                const move = (me) => {
+                    const rect = canvas.getBoundingClientRect();
+                    onMove(Math.round(me.clientX - rect.left), Math.round(me.clientY - rect.top));
+                    applyStyles(document.getElementById(selectedElementId), findElementData(selectedElementId));
+                    syncUI();
+                };
+                const up = () => { save(); window.removeEventListener('mousemove', move); };
+                window.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', up);
+            });
+            return h;
+        }
+
+        window.findElementData = (id) => {
+            const win = windows.find(w => w.id === currentWindowId);
+            return win.elements.find(e => e.id === id);
+        };
+
+        function startDrag(e, data) {
+            const startX = e.clientX, startY = e.clientY;
+            const initX = data.x, initY = data.y;
+            const initX2 = data.x2, initY2 = data.y2;
+
+            const move = (me) => {
+                const dx = me.clientX - startX, dy = me.clientY - startY;
+                data.x = Math.round(initX + dx);
+                data.y = Math.round(initY + dy);
+                if (data.type === 'line') {
+                    data.x2 = Math.round(initX2 + dx);
+                    data.y2 = Math.round(initY2 + dy);
+                }
+                applyStyles(document.getElementById(data.id), data);
+                syncUI();
+            };
+            const up = () => { save(); window.removeEventListener('mousemove', move); };
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', up);
+        }
+
+        function startResize(e, data) {
+            const startX = e.clientX, startY = e.clientY;
+            const initW = data.w, initH = data.h;
+            const move = (me) => {
+                const dx = me.clientX - startX, dy = me.clientY - startY;
+                data.w = Math.max(10, Math.round(initW + dx));
+                data.h = Math.max(10, Math.round(initH + dy));
+                applyStyles(document.getElementById(data.id), data);
+                syncUI();
+            };
+            const up = () => { save(); window.removeEventListener('mousemove', move); };
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', up);
+        }
+
+        function select(id) {
+            if (selectedElementId === id) return;
+            deselect();
             selectedElementId = id;
-            document.getElementById(id).classList.add('selected');
+            const el = document.getElementById(id);
+            if (el) el.classList.add('selected');
+            renderProperties();
+        }
+
+        function deselect() {
+            if (selectedElementId) {
+                const el = document.getElementById(selectedElementId);
+                if (el) el.classList.remove('selected');
+            }
+            selectedElementId = null;
             renderProperties();
         }
 
@@ -361,94 +404,103 @@
             const container = document.getElementById('properties-content');
             const win = windows.find(w => w.id === currentWindowId);
             const data = win.elements.find(e => e.id === selectedElementId);
-            if (!data) { container.innerHTML = '<div class="text-center py-10 text-zinc-600 text-[10px] uppercase font-bold italic">Selecciona para configurar</div>'; return; }
+            if (!data) { container.innerHTML = '<p class="text-zinc-600 text-xs italic text-center py-8">Selecciona un objeto para editar</p>'; return; }
 
             container.innerHTML = `
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[9px] text-zinc-500 font-black uppercase">Posicion X</label><input type="number" id="in-x" value="${data.x}" oninput="updateData('x', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs outline-none focus:border-blue-600"></div>
-                        <div><label class="text-[9px] text-zinc-500 font-black uppercase">Posicion Y</label><input type="number" id="in-y" value="${data.y}" oninput="updateData('y', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs outline-none focus:border-blue-600"></div>
-                        <div><label class="text-[9px] text-zinc-500 font-black uppercase">Ancho</label><input type="number" id="in-w" value="${data.w}" ${data.type === 'text' ? 'disabled' : ''} oninput="updateData('w', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs disabled:opacity-30"></div>
-                        <div><label class="text-[9px] text-zinc-500 font-black uppercase">Alto / Letra</label><input type="number" id="in-h" value="${data.h}" oninput="updateData('h', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs outline-none focus:border-blue-600"></div>
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">X1 / Pos X</label><input type="number" id="p-x" value="${data.x}" oninput="update('x', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Y1 / Pos Y</label><input type="number" id="p-y" value="${data.y}" oninput="update('y', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        ${data.type === 'line' ? `
+                            <div><label class="text-[9px] text-zinc-500 font-bold uppercase">X Final</label><input type="number" id="p-x2" value="${data.x2}" oninput="update('x2', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                            <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Y Final</label><input type="number" id="p-y2" value="${data.y2}" oninput="update('y2', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        ` : `
+                            <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Ancho</label><input type="number" id="p-w" value="${data.w}" oninput="update('w', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs" ${data.type==='text'?'disabled':''}></div>
+                            <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Alto / Font</label><input type="number" id="p-h" value="${data.h}" oninput="update('h', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs"></div>
+                        `}
                     </div>
-                    ${data.type === 'text' ? `
-                        <div><label class="text-[9px] text-zinc-500 font-black uppercase">Texto</label><input type="text" id="in-text" value="${data.text}" oninput="updateData('text', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs text-blue-400 font-black uppercase"></div>
-                    ` : ''}
-                    <div>
-                        <label class="text-[9px] text-zinc-500 font-black uppercase">Color del objeto</label>
-                        <input type="color" value="${data.color}" oninput="updateData('color', this.value)" class="w-full h-8 bg-black border border-zinc-800 rounded cursor-pointer">
-                    </div>
-                    <button onclick="deleteElement()" class="w-full py-2 bg-red-900/10 hover:bg-red-900/20 text-red-500 rounded text-[10px] font-black border border-red-900/30 transition-all uppercase">Eliminar Objeto</button>
+                    ${data.type === 'text' ? `<div><label class="text-[9px] text-zinc-500 font-bold uppercase">Texto</label><input type="text" value="${data.text}" oninput="update('text', this.value)" class="w-full bg-black border border-zinc-800 rounded p-1 text-xs text-blue-400 uppercase"></div>` : ''}
+                    <div><label class="text-[9px] text-zinc-500 font-bold uppercase">Color</label><input type="color" value="${data.color}" oninput="update('color', this.value)" class="w-full h-8 bg-black border border-zinc-800 rounded cursor-pointer"></div>
+                    <button onclick="deleteEl()" class="w-full py-2 bg-red-900/10 text-red-500 text-[10px] font-bold border border-red-900/30 rounded uppercase">Eliminar</button>
                 </div>
             `;
         }
 
-        function syncPropertiesInputs(data) {
-            ['x', 'y', 'w', 'h', 'text'].forEach(k => {
-                const input = document.getElementById('in-' + k);
-                if (input && document.activeElement !== input) input.value = data[k];
+        function update(k, v) {
+            const win = windows.find(w => w.id === currentWindowId);
+            const data = win.elements.find(e => e.id === selectedElementId);
+            if(!data) return;
+            data[k] = (k === 'color' || k === 'text') ? v : parseInt(v || 0);
+            applyStyles(document.getElementById(data.id), data);
+            save();
+        }
+
+        function deleteEl() {
+            const win = windows.find(w => w.id === currentWindowId);
+            win.elements = win.elements.filter(e => e.id !== selectedElementId);
+            const el = document.getElementById(selectedElementId);
+            if(el) el.remove();
+            deselect();
+            save();
+        }
+
+        function syncUI() {
+            const win = windows.find(w => w.id === currentWindowId);
+            const data = win.elements.find(e => e.id === selectedElementId);
+            if (!data) return;
+            ['x', 'y', 'x2', 'y2', 'w', 'h'].forEach(k => {
+                const inp = document.getElementById('p-' + k);
+                if (inp) inp.value = data[k];
             });
         }
 
-        function updateData(key, val) {
+        function updateScreenSize() {
             const win = windows.find(w => w.id === currentWindowId);
-            const data = win.elements.find(e => e.id === selectedElementId);
-            data[key] = (key === 'color' || key === 'text') ? val : parseInt(val || 0);
-            applyElementStyles(document.getElementById(selectedElementId), data);
-            syncPropertiesInputs(data);
-            saveToStorage();
-        }
-
-        function deleteElement() {
-            const win = windows.find(w => w.id === currentWindowId);
-            win.elements = win.elements.filter(e => e.id !== selectedElementId);
-            document.getElementById(selectedElementId).remove();
-            selectedElementId = null;
-            renderProperties();
-            saveToStorage();
+            win.width = parseInt(document.getElementById('screen-w').value) || 800;
+            win.height = parseInt(document.getElementById('screen-h').value) || 450;
+            canvas.style.width = win.width + 'px';
+            canvas.style.height = win.height + 'px';
+            save();
         }
 
         function updateWindowTitle(val) {
             const win = windows.find(w => w.id === currentWindowId);
             win.title = val.toUpperCase().replace(/\s+/g, '_');
             renderTabs();
-            saveToStorage();
+            save();
         }
 
         function exportCode() {
             const win = windows.find(w => w.id === currentWindowId);
-            
-            // Separamos elementos para que el texto siempre se dibuje al final del buecle
             const formas = win.elements.filter(e => e.type !== 'text');
             const textos = win.elements.filter(e => e.type === 'text');
 
             const full = `#include "raylib.h"
 
-// --- EXPLICACIÓN DEL PROFESOR ---
-// Recuerda: Raylib dibuja las cosas en el orden en que escribes el código.
-// Si quieres que el texto esté "arriba", debes poner las funciones de texto
-// siempre al final, justo antes de terminar de dibujar (EndDrawing).
-// He organizado este código para que las formas vayan primero y los textos después.
+// --- COMENTARIOS DEL PROFESOR ---
+// Recuerda que el orden de dibujo es fundamental.
+// Lo que se dibuja primero queda al fondo.
+// No olvides llamar a CloseWindow al final para liberar memoria.
 
 int main() {
-    // Definimos el tamaño de la ventana según lo que hiciste en el estudio
-    InitWindow(${win.width}, ${win.height}, "Mi Juego - ${win.title}");
+    InitWindow(${win.width}, ${win.height}, "Raylib Studio - ${win.title}");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-            ClearBackground(BLACK); // Limpiamos la pantalla con negro
+            ClearBackground(BLACK); // Pintamos el fondo de negro
             
-            // Primero dibujamos las formas (rectángulos, círculos, etc.)
+            // Dibujamos las figuras geometricas
             ${formas.map(e => {
                 const color = `GetColor(0x${e.color.replace('#','') }FF)`;
                 if(e.type === 'rect') return `DrawRectangle(${e.x}, ${e.y}, ${e.w}, ${e.h}, ${color});`;
                 if(e.type === 'circle') return `DrawCircle(${e.x + e.w/2}, ${e.y + e.h/2}, ${e.w/2}, ${color});`;
                 if(e.type === 'triangle') return `DrawTriangle((Vector2){${e.x + e.w/2}, ${e.y}}, (Vector2){${e.x}, ${e.y + e.h}}, (Vector2){${e.x + e.w}, ${e.y + e.h}}, ${color});`;
+                if(e.type === 'line') return `DrawLine(${e.x}, ${e.y}, ${e.x2}, ${e.y2}, ${color});`;
                 return '';
             }).join('\n            ')}
 
-            // Por último dibujamos los textos para que nada los tape
+            // Dibujamos los textos por encima para que sean legibles
             ${textos.map(e => {
                 const color = `GetColor(0x${e.color.replace('#','') }FF)`;
                 return `DrawText("${e.text}", ${e.x}, ${e.y}, ${e.h}, ${color});`;
@@ -457,7 +509,7 @@ int main() {
         EndDrawing();
     }
 
-    CloseWindow();
+    CloseWindow(); // Cerramos la ventana de forma limpia
     return 0;
 }
 `;
